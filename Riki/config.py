@@ -1,11 +1,11 @@
 # encoding: utf-8
-
-SECRET_KEY='a unique and long key'
-TITLE='Riki' 
-HISTORY_SHOW_MAX=30
-PIC_BASE = 'images'
-CONTENT_DIR = 'content'
-USER_DIR = 'user'
-NUMBER_OF_HISTORY = 5
-PRIVATE = True
+import os
+SECRET_KEY=os.environ.get("SECRET_KEY")
+TITLE=os.environ.get("TITLE")
+HISTORY_SHOW_MAX=os.environ.get("HISTORY_SHOW_MAX")
+PIC_BASE = os.environ.get("PIC_BASE")
+CONTENT_DIR = os.environ.get("CONTENT_DIR")
+USER_DIR = os.environ.get("USER_DIR")
+NUMBER_OF_HISTORY = os.environ.get("NUMBER_OF_HISTORY")
+PRIVATE = os.environ.get("PRIVATE")
 #PRIVATE = False
