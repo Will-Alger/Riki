@@ -13,5 +13,8 @@ RUN pip install -r requirements.txt
 COPY Riki /opt/app/
 # Expose network ports
 EXPOSE 5000
+# set the command to run
+RUN chmod +x /opt/app/entrypoint.sh
+ENTRYPOINT ["/opt/app/entrypoint.sh"]
 # set the command to run 
-CMD ["python", "Riki.py"]
+CMD ["debug"]
