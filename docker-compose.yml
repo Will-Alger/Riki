@@ -3,7 +3,7 @@ services:
   riki:
     build: .
     ports:
-      - '5000:5000'
+      - '5001:5001'
     volumes:
       - 'riki_content:/opt/app/content'
       - './reports/cov_html:/opt/app/cov_html'

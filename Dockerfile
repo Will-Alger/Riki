@@ -12,7 +12,7 @@ RUN pip install -r requirements.txt
 # copy the rest of the app
 COPY Riki /opt/app/
 # Expose network ports
-EXPOSE 5000
+EXPOSE 5001
 # set the command to run
 RUN chmod +x /opt/app/entrypoint.sh
 ENTRYPOINT ["/opt/app/entrypoint.sh"]

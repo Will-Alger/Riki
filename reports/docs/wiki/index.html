@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>wiki API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>wiki</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from wiki.core import Wiki
+from wiki.web import create_app
+
+__all__ = [&#39;Wiki&#39;, &#39;create_app&#39;]</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="wiki.core" href="core.html">wiki.core</a></code></dt>
+<dd>
+<div class="desc"><p>Wiki core
+~~~~~~~~~</p></div>
+</dd>
+<dt><code class="name"><a title="wiki.web" href="web/index.html">wiki.web</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="wiki.create_app"><code class="name flex">
+<span>def <span class="ident">create_app</span></span>(<span>directory)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_app(directory):
+    app = Flask(__name__)
+    app.config[&#39;CONTENT_DIR&#39;] = directory
+    app.config[&#39;TITLE&#39;] = &#39;wiki&#39;
+    try:
+        app.config.from_pyfile(
+            os.path.join(app.config.get(&#39;CONTENT_DIR&#39;), &#39;config.py&#39;)
+        )
+    except IOError:
+        msg = &#34;You need to place a config.py in your content directory.&#34;
+        raise WikiError(msg)
+
+    loginmanager.init_app(app)
+
+    from wiki.web.routes import bp
+    app.register_blueprint(bp)
+
+    return app</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="wiki.Wiki"><code class="flex name class">
+<span>class <span class="ident">Wiki</span></span>
+<span>(</span><span>root)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Wiki(object):
+    def __init__(self, root):
+        self.root = root
+
+    def path(self, url):
+        return os.path.join(self.root, url + &#39;.md&#39;)
+
+    def exists(self, url):
+        path = self.path(url)
+        return os.path.exists(path)
+
+    def get(self, url):
+        path = self.path(url)
+        #path = os.path.join(self.root, url + &#39;.md&#39;)
+        if self.exists(url):
+            return Page(path, url)
+        return None
+
+    def get_or_404(self, url):
+        page = self.get(url)
+        if page:
+            return page
+        abort(404)
+
+    def get_bare(self, url):
+        path = self.path(url)
+        if self.exists(url):
+            return False
+        return Page(path, url, new=True)
+
+    def move(self, url, newurl):
+        source = os.path.join(self.root, url) + &#39;.md&#39;
+        target = os.path.join(self.root, newurl) + &#39;.md&#39;
+        # normalize root path (just in case somebody defined it absolute,
+        # having some &#39;../&#39; inside) to correctly compare it to the target
+        root = os.path.normpath(self.root)
+        # get root path longest common prefix with normalized target path
+        common = os.path.commonprefix((root, os.path.normpath(target)))
+        # common prefix length must be at least as root length is
+        # otherwise there are probably some &#39;..&#39; links in target path leading
+        # us outside defined root directory
+        if len(common) &lt; len(root):
+            raise RuntimeError(
+                &#39;Possible write attempt outside content directory: &#39;
+                &#39;%s&#39; % newurl)
+        # create folder if it does not exists yet
+        folder = os.path.dirname(target)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        os.rename(source, target)
+
+    def delete(self, url):
+        path = self.path(url)
+        if not self.exists(url):
+            return False
+        os.remove(path)
+        return True
+
+    def index(self):
+        &#34;&#34;&#34;
+            Builds up a list of all the available pages.
+
+            :returns: a list of all the wiki pages
+            :rtype: list
+        &#34;&#34;&#34;
+        # make sure we always have the absolute path for fixing the
+        # walk path
+        pages = []
+        root = os.path.abspath(self.root)
+        for cur_dir, _, files in os.walk(root):
+            # get the url of the current directory
+            cur_dir_url = cur_dir[len(root)+1:]
+            for cur_file in files:
+                path = os.path.join(cur_dir, cur_file)
+                if cur_file.endswith(&#39;.md&#39;):
+                    url = clean_url(os.path.join(cur_dir_url, cur_file[:-3]))
+                    page = Page(path, url)
+                    pages.append(page)
+        return sorted(pages, key=lambda x: x.title.lower())
+
+    def index_by(self, key):
+        &#34;&#34;&#34;
+            Get an index based on the given key.
+
+            Will use the metadata value of the given key to group
+            the existing pages.
+
+            :param str key: the attribute to group the index on.
+
+            :returns: Will return a dictionary where each entry holds
+                a list of pages that share the given attribute.
+            :rtype: dict
+        &#34;&#34;&#34;
+        pages = {}
+        for page in self.index():
+            value = getattr(page, key)
+            pre = pages.get(value, [])
+            pages[value] = pre.append(page)
+        return pages
+
+    def get_by_title(self, title):
+        pages = self.index(attr=&#39;title&#39;)
+        return pages.get(title)
+
+    def get_tags(self):
+        pages = self.index()
+        tags = {}
+        for page in pages:
+            pagetags = page.tags.split(&#39;,&#39;)
+            for tag in pagetags:
+                tag = tag.strip()
+                if tag == &#39;&#39;:
+                    continue
+                elif tags.get(tag):
+                    tags[tag].append(page)
+                else:
+                    tags[tag] = [page]
+        return tags
+
+    def index_by_tag(self, tag):
+        pages = self.index()
+        tagged = []
+        for page in pages:
+            if tag in page.tags:
+                tagged.append(page)
+        return sorted(tagged, key=lambda x: x.title.lower())
+
+    def search(self, term, ignore_case=True, attrs=[&#39;title&#39;, &#39;tags&#39;, &#39;body&#39;]):
+        pages = self.index()
+        regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
+        matched = []
+        for page in pages:
+            for attr in attrs:
+                if regex.search(getattr(page, attr)):
+                    matched.append(page)
+                    break
+        return matched</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="wiki.Wiki.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>self, url)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delete(self, url):
+    path = self.path(url)
+    if not self.exists(url):
+        return False
+    os.remove(path)
+    return True</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.exists"><code class="name flex">
+<span>def <span class="ident">exists</span></span>(<span>self, url)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def exists(self, url):
+    path = self.path(url)
+    return os.path.exists(path)</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, url)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, url):
+    path = self.path(url)
+    #path = os.path.join(self.root, url + &#39;.md&#39;)
+    if self.exists(url):
+        return Page(path, url)
+    return None</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.get_bare"><code class="name flex">
+<span>def <span class="ident">get_bare</span></span>(<span>self, url)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bare(self, url):
+    path = self.path(url)
+    if self.exists(url):
+        return False
+    return Page(path, url, new=True)</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.get_by_title"><code class="name flex">
+<span>def <span class="ident">get_by_title</span></span>(<span>self, title)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_by_title(self, title):
+    pages = self.index(attr=&#39;title&#39;)
+    return pages.get(title)</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.get_or_404"><code class="name flex">
+<span>def <span class="ident">get_or_404</span></span>(<span>self, url)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_or_404(self, url):
+    page = self.get(url)
+    if page:
+        return page
+    abort(404)</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.get_tags"><code class="name flex">
+<span>def <span class="ident">get_tags</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_tags(self):
+    pages = self.index()
+    tags = {}
+    for page in pages:
+        pagetags = page.tags.split(&#39;,&#39;)
+        for tag in pagetags:
+            tag = tag.strip()
+            if tag == &#39;&#39;:
+                continue
+            elif tags.get(tag):
+                tags[tag].append(page)
+            else:
+                tags[tag] = [page]
+    return tags</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.index"><code class="name flex">
+<span>def <span class="ident">index</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds up a list of all the available pages.</p>
+<p>:returns: a list of all the wiki pages
+:rtype: list</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index(self):
+    &#34;&#34;&#34;
+        Builds up a list of all the available pages.
+
+        :returns: a list of all the wiki pages
+        :rtype: list
+    &#34;&#34;&#34;
+    # make sure we always have the absolute path for fixing the
+    # walk path
+    pages = []
+    root = os.path.abspath(self.root)
+    for cur_dir, _, files in os.walk(root):
+        # get the url of the current directory
+        cur_dir_url = cur_dir[len(root)+1:]
+        for cur_file in files:
+            path = os.path.join(cur_dir, cur_file)
+            if cur_file.endswith(&#39;.md&#39;):
+                url = clean_url(os.path.join(cur_dir_url, cur_file[:-3]))
+                page = Page(path, url)
+                pages.append(page)
+    return sorted(pages, key=lambda x: x.title.lower())</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.index_by"><code class="name flex">
+<span>def <span class="ident">index_by</span></span>(<span>self, key)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get an index based on the given key.</p>
+<p>Will use the metadata value of the given key to group
+the existing pages.</p>
+<p>:param str key: the attribute to group the index on.</p>
+<p>:returns: Will return a dictionary where each entry holds
+a list of pages that share the given attribute.
+:rtype: dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index_by(self, key):
+    &#34;&#34;&#34;
+        Get an index based on the given key.
+
+        Will use the metadata value of the given key to group
+        the existing pages.
+
+        :param str key: the attribute to group the index on.
+
+        :returns: Will return a dictionary where each entry holds
+            a list of pages that share the given attribute.
+        :rtype: dict
+    &#34;&#34;&#34;
+    pages = {}
+    for page in self.index():
+        value = getattr(page, key)
+        pre = pages.get(value, [])
+        pages[value] = pre.append(page)
+    return pages</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.index_by_tag"><code class="name flex">
+<span>def <span class="ident">index_by_tag</span></span>(<span>self, tag)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index_by_tag(self, tag):
+    pages = self.index()
+    tagged = []
+    for page in pages:
+        if tag in page.tags:
+            tagged.append(page)
+    return sorted(tagged, key=lambda x: x.title.lower())</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.move"><code class="name flex">
+<span>def <span class="ident">move</span></span>(<span>self, url, newurl)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def move(self, url, newurl):
+    source = os.path.join(self.root, url) + &#39;.md&#39;
+    target = os.path.join(self.root, newurl) + &#39;.md&#39;
+    # normalize root path (just in case somebody defined it absolute,
+    # having some &#39;../&#39; inside) to correctly compare it to the target
+    root = os.path.normpath(self.root)
+    # get root path longest common prefix with normalized target path
+    common = os.path.commonprefix((root, os.path.normpath(target)))
+    # common prefix length must be at least as root length is
+    # otherwise there are probably some &#39;..&#39; links in target path leading
+    # us outside defined root directory
+    if len(common) &lt; len(root):
+        raise RuntimeError(
+            &#39;Possible write attempt outside content directory: &#39;
+            &#39;%s&#39; % newurl)
+    # create folder if it does not exists yet
+    folder = os.path.dirname(target)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    os.rename(source, target)</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.path"><code class="name flex">
+<span>def <span class="ident">path</span></span>(<span>self, url)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def path(self, url):
+    return os.path.join(self.root, url + &#39;.md&#39;)</code></pre>
+</details>
+</dd>
+<dt id="wiki.Wiki.search"><code class="name flex">
+<span>def <span class="ident">search</span></span>(<span>self, term, ignore_case=True, attrs=['title', 'tags', 'body'])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def search(self, term, ignore_case=True, attrs=[&#39;title&#39;, &#39;tags&#39;, &#39;body&#39;]):
+    pages = self.index()
+    regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
+    matched = []
+    for page in pages:
+        for attr in attrs:
+            if regex.search(getattr(page, attr)):
+                matched.append(page)
+                break
+    return matched</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="wiki.core" href="core.html">wiki.core</a></code></li>
+<li><code><a title="wiki.web" href="web/index.html">wiki.web</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="wiki.create_app" href="#wiki.create_app">create_app</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="wiki.Wiki" href="#wiki.Wiki">Wiki</a></code></h4>
+<ul class="two-column">
+<li><code><a title="wiki.Wiki.delete" href="#wiki.Wiki.delete">delete</a></code></li>
+<li><code><a title="wiki.Wiki.exists" href="#wiki.Wiki.exists">exists</a></code></li>
+<li><code><a title="wiki.Wiki.get" href="#wiki.Wiki.get">get</a></code></li>
+<li><code><a title="wiki.Wiki.get_bare" href="#wiki.Wiki.get_bare">get_bare</a></code></li>
+<li><code><a title="wiki.Wiki.get_by_title" href="#wiki.Wiki.get_by_title">get_by_title</a></code></li>
+<li><code><a title="wiki.Wiki.get_or_404" href="#wiki.Wiki.get_or_404">get_or_404</a></code></li>
+<li><code><a title="wiki.Wiki.get_tags" href="#wiki.Wiki.get_tags">get_tags</a></code></li>
+<li><code><a title="wiki.Wiki.index" href="#wiki.Wiki.index">index</a></code></li>
+<li><code><a title="wiki.Wiki.index_by" href="#wiki.Wiki.index_by">index_by</a></code></li>
+<li><code><a title="wiki.Wiki.index_by_tag" href="#wiki.Wiki.index_by_tag">index_by_tag</a></code></li>
+<li><code><a title="wiki.Wiki.move" href="#wiki.Wiki.move">move</a></code></li>
+<li><code><a title="wiki.Wiki.path" href="#wiki.Wiki.path">path</a></code></li>
+<li><code><a title="wiki.Wiki.search" href="#wiki.Wiki.search">search</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
