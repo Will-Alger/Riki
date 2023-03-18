@@ -16,12 +16,13 @@ from flask_login import logout_user
 from wiki.core import Processor
 from wiki.web.forms import EditorForm
 from wiki.web.forms import LoginForm
+from wiki.web.forms import SignupForm
 from wiki.web.forms import SearchForm
 from wiki.web.forms import URLForm
 from wiki.web import current_wiki
 from wiki.web import current_users
 from wiki.web.user import protect
-
+import sqlite3
 
 bp = Blueprint('wiki', __name__)
 
@@ -155,9 +156,24 @@ def user_index():
     pass
 
 
-@bp.route('/user/create/')
+def get_db_connection():
+    conn = sqlite3.connect('riki.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+@bp.route('/user/create/', methods=['GET', 'POST'])
 def user_create():
-    pass
+    conn = get_db_connection()
+    users = conn.execute('SELECT * FROM users').fetchall()
+    conn.close()
+
+    form = SignupForm()
+    if form.validate_on_submit():
+        redirect(request.args.get("next") or url_for('wiki.index'))
+    return render_template('signup.html', users=users)
+
+
 
 
 @bp.route('/user/<int:user_id>/')
