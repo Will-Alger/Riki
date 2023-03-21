@@ -2,6 +2,7 @@
     Routes
     ~~~~~~
 """
+import os
 from flask import Blueprint
 from flask import flash
 from flask import redirect
@@ -177,12 +178,51 @@ def user_create():
 
 
 @bp.route('/user/<int:user_id>/')
+@login_required
 def user_admin(user_id):
-    pass
+    if(current_user.get_id() == user_id):
+        return render_template('admin.html')
 
 
 @bp.route('/user/delete/<int:user_id>/')
 def user_delete(user_id):
+    pass
+
+# Image uploading
+
+@bp.route('/user/<int:user_id>/upload/', methods=['GET', 'POST'])
+@login_required
+def upload_image(user_id):
+    if request.method == 'POST':
+        if 'a_file' not in request.files:
+            flash('there is no file!')
+        image = request.files['an_image']
+        if image.filename != '':
+            if image and current_wiki.allowed_file(image.filename):
+                # save image method here, separate class possible. could prevent import os on this file.
+                # save_image(image)
+                path = os.path.join(current_wiki.config['PIC_BASE'], image.filename)
+                image.save(path)
+                flash('Image Saved!')
+                return render_template('image.html', image_path=path, user_id=user_id)
+            else: 
+                flash('Unacceptable file type!')
+        else:
+            flash('Unacceptable file type!')    
+        flash('Image Not Saved!')
+        return redirect(request.url)
+    
+@bp.route('/user/<int:user_id>/images/')
+@login_required
+def view_images(user_id):
+    pass
+    
+@bp.route('/img/')
+def index_images():
+    pass
+
+@bp.route('/img/<int:img_id>/')
+def view_image(img_id):
     pass
 
 

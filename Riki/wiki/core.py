@@ -11,7 +11,6 @@ from flask import abort
 from flask import url_for
 import markdown
 
-
 def clean_url(url):
     """
         Cleans the url and corrects various errors. Removes multiple
@@ -375,3 +374,10 @@ class Wiki(object):
                     matched.append(page)
                     break
         return matched
+    
+    # For image uploading
+    def allowed_file(self, filename): 
+        ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
