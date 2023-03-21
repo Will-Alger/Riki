@@ -1,8 +1,10 @@
 # set the image to base this image on
 # Note that Riki requires <= 3.9
 FROM python:3.9.13-bullseye
-# create the directory for our application
+# create the directory for our applicationls
 RUN mkdir /opt/app
+
+RUN mkdir /var/db
 # set that as our working directory
 WORKDIR /opt/app
 # copy the requirements file

@@ -155,17 +155,17 @@ def user_logout():
 def user_index():
     pass
 
-
 def get_db_connection():
-    conn = sqlite3.connect('riki.db')
+    conn = sqlite3.connect('/var/db/riki.db')
     conn.row_factory = sqlite3.Row
     return conn
 
+#TODO create a class to manage user (DAO data access object)
 
 @bp.route('/user/create/', methods=['GET', 'POST'])
 def user_create():
     conn = get_db_connection()
-    users = conn.execute('SELECT * FROM users').fetchall()
+    users = conn.execute('select * from users').fetchall()
     conn.close()
 
     form = SignupForm()

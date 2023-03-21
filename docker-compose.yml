@@ -5,11 +5,14 @@ services:
     ports:
       - '5001:5001'
     volumes:
+      - 'riki_data:/var/db'
       - 'riki_content:/opt/app/content'
       - './reports/cov_html:/opt/app/cov_html'
       - './reports/docs:/opt/app/wiki/web/static/docs'
     env_file:
-    - .env
+      - .env
 volumes:
   riki_content:
+    driver: local
+  riki_data:
     driver: local

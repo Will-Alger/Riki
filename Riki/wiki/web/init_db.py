@@ -1,8 +1,11 @@
 import sqlite3
 
-connection = sqlite3.connect("riki.db")
+#TODO only init if riki.db doesn't exist in /var/db
 
-with open('schema.sql') as f:
+# how to make connection string to var/db
+connection = sqlite3.connect("/var/db/riki.db")
+
+with open('wiki/web/schema.sql') as f:
     connection.executescript(f.read())
 
 cur = connection.cursor()
