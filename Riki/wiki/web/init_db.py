@@ -5,8 +5,7 @@ dbpath = "/var/db/riki.db"
 
 if (not os.path.exists(dbpath)):
     print(" * database not found, running int_db.py")
-    #TODO only init if riki.db doesn't exist in /var/db
-
+    
     # how to make connection string to var/db
     connection = sqlite3.connect("/var/db/riki.db")
 
