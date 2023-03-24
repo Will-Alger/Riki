@@ -10,6 +10,7 @@ import re
 from flask import abort
 from flask import url_for
 import markdown
+import config
 
 def clean_url(url):
     """
@@ -381,3 +382,6 @@ class Wiki(object):
         return '.' in filename and \
             filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+    def save_image(self, image):
+        path = os.path.join(config.PIC_BASE, image.filename)
+        image.save(path)
