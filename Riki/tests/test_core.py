@@ -3,7 +3,7 @@ import tempfile, os
 from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki
 
-from wiki.core import Processor, Page
+from wiki.core import Processor, Page, Wiki
 
 class TestProcessor:
     def test_constructor(self):
