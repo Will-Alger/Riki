@@ -74,4 +74,8 @@ def test_edit_post(client, testpage):
     #this is to read the file and see if it was actually edited
     with open("content/testpage.md", "r") as filein:
         assert "i edited the testpage" in filein.read()
+
+
+def test_upload_image():
     
+    pass

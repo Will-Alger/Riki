@@ -10,10 +10,7 @@ import re
 from flask import abort
 from flask import url_for
 import markdown
-<<<<<<< HEAD
 import config
-=======
->>>>>>> 285125f (progress on image uploading feature)
 
 def clean_url(url):
     """
