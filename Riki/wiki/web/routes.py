@@ -211,15 +211,18 @@ def upload_image(user_id):
 @bp.route('/user/<string:user_id>/images/')
 @login_required
 def user_images(user_id):
-    pass
+    flash('This feature is not available yet!')
+    return redirect(request.referrer)
     
 @bp.route('/img/')
 def index_images():
-    pass
+    flash('This feature is not available yet!')
+    return redirect(request.referrer)
 
 @bp.route('/img/<int:img_id>/')
 def view_image(img_id):
-    pass
+    flash('This feature is not available yet!')
+    return redirect(request.referrer)
 
 
 """
