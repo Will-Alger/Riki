@@ -3,8 +3,8 @@
 FROM python:3.9.13-bullseye
 # create the directory for our applicationls
 RUN mkdir /opt/app
-
 RUN mkdir /var/db
+RUN mkdir /opt/img
 # set that as our working directory
 WORKDIR /opt/app
 # copy the requirements file
