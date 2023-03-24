@@ -4,6 +4,7 @@ import os
 
 from Riki import app
 import wiki.web.routes
+import tempfile
 
 @pytest.fixture
 def client():
@@ -74,8 +75,13 @@ def test_edit_post(client, testpage):
     #this is to read the file and see if it was actually edited
     with open("content/testpage.md", "r") as filein:
         assert "i edited the testpage" in filein.read()
-
-
-def test_upload_image():
     
-    pass
+def test_upload_image(client):
+    client.get_id()
+    rv = client.post("/user/user/upload", headers={"Content-Type":"multipart/form-data"},
+        data = {
+            "an_image" : tempfile.NamedTemporaryFile(suffix=".jpg")
+        }, 
+        follow_redirects=True
+    )
+    assert b'Image Saved!' in rv.data
