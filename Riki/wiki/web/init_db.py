@@ -1,38 +1,32 @@
 import sqlite3
 import os
 
-dbpath = "/var/db/riki.db"
+def init_db(dbpath='/var/db/riki.db'):
+    if not os.path.exists(dbpath):
+        print(" * database not found, running init_db.py")
 
-if (not os.path.exists(dbpath)):
-    print(" * database not found, running int_db.py")
-    
-    # how to make connection string to var/db
-    connection = sqlite3.connect("/var/db/riki.db")
+        # Connect to the database
+        with sqlite3.connect(dbpath) as connection:
 
-    with open('wiki/web/schema.sql') as f:
-        connection.executescript(f.read())
+            # Create tables from schema.sql
+            with open('wiki/web/schema.sql') as f:
+                connection.executescript(f.read())
 
-    cur = connection.cursor()
+            # Insert sample data
+            cur = connection.cursor()
+            cur.executemany("INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+                            [('john doe', 'john.doe@example.com', 'password123'),
+                             ('bob smith', 'bob.smith@example.com', 'password789')]
+                            )
 
-    cur.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-                ('john doe', 'john.doe@example.com', 'password123')
-                )
+            # Fetch all users and print them
+            cur.execute("SELECT * FROM users")
+            rows = cur.fetchall()
+            for row in rows:
+                print(row)
 
-    cur.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-                ('bob smith', 'bob.smith@example.com', 'password789')
-                )
+            # Commit changes and close the connection
+            connection.commit()
 
-
-
-    cur = connection.cursor()
-    cur.execute("SELECT * FROM users")
-
-    rows = cur.fetchall()
-
-    for row in rows:
-        print(row)
-
-    connection.commit()
-    connection.close()
-else:
-    print(" * database found, skipping init_db.py")
+    else:
+        print(" * database found, skipping init_db.py")
