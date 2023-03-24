@@ -211,7 +211,7 @@ def upload_image(user_id):
     
 @bp.route('/user/<string:user_id>/images/')
 @login_required
-def view_images(user_id):
+def user_images(user_id):
     pass
     
 @bp.route('/img/')
