@@ -38,6 +38,11 @@ def test_db_file_created(client):
     db_path = client.db_path
     assert os.path.exists(db_path), "Database file not created"
 
+def test_init_db_non_force_while_database_exists(client):
+    db_path = client.db_path
+    init_db(db_path, force=False)
+    assert os.path.exists(db_path), "Database file not found: run mode -> force=False"
+
 def test_users_table_created(client):
     db_path = client.db_path
     with sqlite3.connect(db_path) as connection:
@@ -60,8 +65,6 @@ def test_get_users(user_dao_manager):
     user_dao_manager.create_user(user1)
     user_dao_manager.create_user(user2)
     result = user_dao_manager.get_users()
-    for re in result:
-        print(f' Teddy ->   {re[0]} {re[1]} {re[2]} {re[3]}')
     assert len(result) == 2
     assert result[0]['name'], user1.name
     assert result[1]['email'], user2.email
