@@ -4,22 +4,13 @@
 
 {% block content %}
 
-{# jinja2 acceptable comment -> html comments cause problems
-<!-- <form class="form form-inline" method="POST">
+<form class="form form-inline" method="POST">
 	{{ form.hidden_tag() }}
 	{{ form.name(placeholder='Username') }}<br><br>
 	{{ form.password(placeholder='Password') }}<br>
 	{{ form.confirm_password(placeholder='Confirm Password') }}<br><br>
 	{{ form.email(placeholder='Email') }}<br><br>
 	<input type="submit" class="btn btn-primary" value="Sign up">
-</form> -->
-#}
-
-{% for user in users %}
-<div class='user'>
-	<h2>{{ user['name'] }}</h1>
-		<p>{{ user['email'] }}</p>
-</div>
-{% endfor %}
+</form>
 
 {% endblock content %}
