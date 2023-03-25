@@ -22,7 +22,8 @@ from wiki.web.forms import URLForm
 from wiki.web import current_wiki
 from wiki.web import current_users
 from wiki.web.user import protect
-import sqlite3
+from wiki.web.userDAO import UserDaoManager
+from wiki.web.userDAO import UserDao
 
 bp = Blueprint('wiki', __name__)
 
@@ -155,23 +156,35 @@ def user_logout():
 def user_index():
     pass
 
-def get_db_connection():
-    conn = sqlite3.connect('/var/db/riki.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
 #TODO create a class to manage user (DAO data access object)
 
 @bp.route('/user/create/', methods=['GET', 'POST'])
 def user_create():
-    conn = get_db_connection()
-    users = conn.execute('select * from users').fetchall()
-    conn.close()
 
     form = SignupForm()
-    if form.validate_on_submit():
-        redirect(request.args.get("next") or url_for('wiki.index'))
-    return render_template('signup.html', users=users)
+    userDaoManager = UserDaoManager('/var/db/riki.db')
+
+    if request.method == 'POST' and form.validate_on_submit():
+        name = form.name.data
+        email = form.email.data
+        password = form.password.data
+        confirm_password = form.confirm_password.data
+
+        user = UserDao(name, email, password)
+        userDaoManager.create_user(user)
+        users = userDaoManager.get_users()
+
+        for user in users:
+            flash(f'{user[0]} {user[1]} {user[2]} {user[3]}')
+        # user = current_users.get_user(form.name.data)
+        # login_user(user)
+        # user.set('authenticated', True)
+        flash('Sign up successful.', 'success')
+
+        userDaoManager.close_db()
+
+        return redirect(request.args.get("next") or url_for('wiki.index'))
+    return render_template('signup.html', form=form)
 
 
 
