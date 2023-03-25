@@ -47,12 +47,14 @@ from flask_login import logout_user
 from wiki.core import Processor
 from wiki.web.forms import EditorForm
 from wiki.web.forms import LoginForm
+from wiki.web.forms import SignupForm
 from wiki.web.forms import SearchForm
 from wiki.web.forms import URLForm
 from wiki.web import current_wiki
 from wiki.web import current_users
 from wiki.web.user import protect
-
+from wiki.web.userDAO import UserDaoManager
+from wiki.web.userDAO import UserDao
 
 bp = Blueprint(&#39;wiki&#39;, __name__)
 
@@ -185,10 +187,37 @@ def user_logout():
 def user_index():
     pass
 
+#TODO create a class to manage user (DAO data access object)
 
-@bp.route(&#39;/user/create/&#39;)
+@bp.route(&#39;/user/create/&#39;, methods=[&#39;GET&#39;, &#39;POST&#39;])
 def user_create():
-    pass
+
+    form = SignupForm()
+    userDaoManager = UserDaoManager(&#39;/var/db/riki.db&#39;)
+
+    if request.method == &#39;POST&#39; and form.validate_on_submit():
+        name = form.name.data
+        email = form.email.data
+        password = form.password.data
+        confirm_password = form.confirm_password.data
+
+        user = UserDao(name, email, password)
+        userDaoManager.create_user(user)
+        users = userDaoManager.get_users()
+
+        for user in users:
+            flash(f&#39;{user[0]} {user[1]} {user[2]} {user[3]}&#39;)
+        # user = current_users.get_user(form.name.data)
+        # login_user(user)
+        # user.set(&#39;authenticated&#39;, True)
+        flash(&#39;Sign up successful.&#39;, &#39;success&#39;)
+
+        userDaoManager.close_db()
+
+        return redirect(request.args.get(&#34;next&#34;) or url_for(&#39;wiki.index&#39;))
+    return render_template(&#39;signup.html&#39;, form=form)
+
+
 
 
 @bp.route(&#39;/user/&lt;int:user_id&gt;/&#39;)
@@ -458,9 +487,33 @@ def user_admin(user_id):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@bp.route(&#39;/user/create/&#39;)
+<pre><code class="python">@bp.route(&#39;/user/create/&#39;, methods=[&#39;GET&#39;, &#39;POST&#39;])
 def user_create():
-    pass</code></pre>
+
+    form = SignupForm()
+    userDaoManager = UserDaoManager(&#39;/var/db/riki.db&#39;)
+
+    if request.method == &#39;POST&#39; and form.validate_on_submit():
+        name = form.name.data
+        email = form.email.data
+        password = form.password.data
+        confirm_password = form.confirm_password.data
+
+        user = UserDao(name, email, password)
+        userDaoManager.create_user(user)
+        users = userDaoManager.get_users()
+
+        for user in users:
+            flash(f&#39;{user[0]} {user[1]} {user[2]} {user[3]}&#39;)
+        # user = current_users.get_user(form.name.data)
+        # login_user(user)
+        # user.set(&#39;authenticated&#39;, True)
+        flash(&#39;Sign up successful.&#39;, &#39;success&#39;)
+
+        userDaoManager.close_db()
+
+        return redirect(request.args.get(&#34;next&#34;) or url_for(&#39;wiki.index&#39;))
+    return render_template(&#39;signup.html&#39;, form=form)</code></pre>
 </details>
 </dd>
 <dt id="wiki.web.routes.user_delete"><code class="name flex">

@@ -38,12 +38,16 @@ from wtforms import BooleanField
 from wtforms import TextField
 from wtforms import TextAreaField
 from wtforms import PasswordField
+from wtforms import StringField, validators
 from wtforms.validators import InputRequired
 from wtforms.validators import ValidationError
 
 from wiki.core import clean_url
 from wiki.web import current_wiki
 from wiki.web import current_users
+from flask import flash
+from wiki.web.userDAO import UserDaoManager
+from wiki.web.userDAO import UserDao
 
 
 class URLForm(Form):
@@ -79,6 +83,34 @@ class LoginForm(Form):
         user = current_users.get_user(field.data)
         if not user:
             raise ValidationError(&#39;This username does not exist.&#39;)
+
+    def validate_password(form, field):
+        user = current_users.get_user(form.name.data)
+        if not user:
+            return
+        if not user.check_password(field.data):
+            raise ValidationError(&#39;Username and password do not match.&#39;)
+
+
+class SignupForm(Form):
+    name = TextField(&#39;&#39;, [InputRequired()])
+    email = StringField(label=&#39;E-mail&#39;, validators=[
+        validators.Length(min=5, max=35),
+        validators.Email()
+    ])
+    password = PasswordField(&#39;&#39;, validators=[
+        validators.Length(min=2, message=&#39;Too short&#39;),
+        InputRequired(),
+        validators.EqualTo(&#39;confirm_password&#39;, message=&#39;Passwords must match&#39;),
+    ])
+    confirm_password = PasswordField(&#39;&#39;, [InputRequired()])
+
+    def validate_email(form, email):
+        userDaoManager = UserDaoManager(&#39;/var/db/riki.db&#39;)
+        valemail =  userDaoManager.get_user(email.data)
+        flash(f&#39;val email -&gt; {valemail}&#39;)
+        if valemail is not None:
+            raise ValidationError(&#39;This Email ID is already registered. Please login&#39;)
 
     def validate_password(form, field):
         user = current_users.get_user(form.name.data)
@@ -329,6 +361,133 @@ of a matching keyword argument to the field, if one exists.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="wiki.web.forms.SignupForm"><code class="flex name class">
+<span>class <span class="ident">SignupForm</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><div class="admonition deprecated">
+<p class="admonition-title">Deprecated since version:&ensp;0.13</p>
+<p>Renamed to :class:<code>~flask_wtf.FlaskForm</code>.</p>
+</div>
+<p>:param formdata:
+Used to pass data coming from the enduser, usually <code>request.POST</code> or
+equivalent. formdata should be some sort of request-data wrapper which
+can get multiple parameters from the form input, and values are unicode
+strings, e.g. a Werkzeug/Django/WebOb MultiDict
+:param obj:
+If <code>formdata</code> is empty or not provided, this object is checked for
+attributes matching form field names, which will be used for field
+values.
+:param prefix:
+If provided, all fields will have their name prefixed with the
+value.
+:param data:
+Accept a dictionary of data. This is only used if <code>formdata</code> and
+<code>obj</code> are not present.
+:param meta:
+If provided, this is a dictionary of values to override attributes
+on this form's meta instance.
+:param <code>**kwargs</code>:
+If <code>formdata</code> is empty or not provided and <code>obj</code> does not contain
+an attribute named the same as a field, form will assign the value
+of a matching keyword argument to the field, if one exists.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SignupForm(Form):
+    name = TextField(&#39;&#39;, [InputRequired()])
+    email = StringField(label=&#39;E-mail&#39;, validators=[
+        validators.Length(min=5, max=35),
+        validators.Email()
+    ])
+    password = PasswordField(&#39;&#39;, validators=[
+        validators.Length(min=2, message=&#39;Too short&#39;),
+        InputRequired(),
+        validators.EqualTo(&#39;confirm_password&#39;, message=&#39;Passwords must match&#39;),
+    ])
+    confirm_password = PasswordField(&#39;&#39;, [InputRequired()])
+
+    def validate_email(form, email):
+        userDaoManager = UserDaoManager(&#39;/var/db/riki.db&#39;)
+        valemail =  userDaoManager.get_user(email.data)
+        flash(f&#39;val email -&gt; {valemail}&#39;)
+        if valemail is not None:
+            raise ValidationError(&#39;This Email ID is already registered. Please login&#39;)
+
+    def validate_password(form, field):
+        user = current_users.get_user(form.name.data)
+        if not user:
+            return
+        if not user.check_password(field.data):
+            raise ValidationError(&#39;Username and password do not match.&#39;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>flask_wtf.form.Form</li>
+<li>flask_wtf.form.FlaskForm</li>
+<li>wtforms.form.Form</li>
+<li>wtforms.compat.NewBase</li>
+<li>wtforms.form.BaseForm</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="wiki.web.forms.SignupForm.confirm_password"><code class="name">var <span class="ident">confirm_password</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="wiki.web.forms.SignupForm.email"><code class="name">var <span class="ident">email</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="wiki.web.forms.SignupForm.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="wiki.web.forms.SignupForm.password"><code class="name">var <span class="ident">password</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="wiki.web.forms.SignupForm.validate_email"><code class="name flex">
+<span>def <span class="ident">validate_email</span></span>(<span>form, email)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_email(form, email):
+    userDaoManager = UserDaoManager(&#39;/var/db/riki.db&#39;)
+    valemail =  userDaoManager.get_user(email.data)
+    flash(f&#39;val email -&gt; {valemail}&#39;)
+    if valemail is not None:
+        raise ValidationError(&#39;This Email ID is already registered. Please login&#39;)</code></pre>
+</details>
+</dd>
+<dt id="wiki.web.forms.SignupForm.validate_password"><code class="name flex">
+<span>def <span class="ident">validate_password</span></span>(<span>form, field)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_password(form, field):
+    user = current_users.get_user(form.name.data)
+    if not user:
+        return
+    if not user.check_password(field.data):
+        raise ValidationError(&#39;Username and password do not match.&#39;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="wiki.web.forms.URLForm"><code class="flex name class">
 <span>class <span class="ident">URLForm</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -458,6 +617,17 @@ of a matching keyword argument to the field, if one exists.</p></div>
 <ul class="">
 <li><code><a title="wiki.web.forms.SearchForm.ignore_case" href="#wiki.web.forms.SearchForm.ignore_case">ignore_case</a></code></li>
 <li><code><a title="wiki.web.forms.SearchForm.term" href="#wiki.web.forms.SearchForm.term">term</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="wiki.web.forms.SignupForm" href="#wiki.web.forms.SignupForm">SignupForm</a></code></h4>
+<ul class="two-column">
+<li><code><a title="wiki.web.forms.SignupForm.confirm_password" href="#wiki.web.forms.SignupForm.confirm_password">confirm_password</a></code></li>
+<li><code><a title="wiki.web.forms.SignupForm.email" href="#wiki.web.forms.SignupForm.email">email</a></code></li>
+<li><code><a title="wiki.web.forms.SignupForm.name" href="#wiki.web.forms.SignupForm.name">name</a></code></li>
+<li><code><a title="wiki.web.forms.SignupForm.password" href="#wiki.web.forms.SignupForm.password">password</a></code></li>
+<li><code><a title="wiki.web.forms.SignupForm.validate_email" href="#wiki.web.forms.SignupForm.validate_email">validate_email</a></code></li>
+<li><code><a title="wiki.web.forms.SignupForm.validate_password" href="#wiki.web.forms.SignupForm.validate_password">validate_password</a></code></li>
 </ul>
 </li>
 <li>

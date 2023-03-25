@@ -116,7 +116,7 @@ class Processor(object):
 
             :param str text: the text to process
         &#34;&#34;&#34;
-        self.md = markdown.Markdown([
+        self.md = markdown.Markdown(extensions=[
             &#39;codehilite&#39;,
             &#39;fenced_code&#39;,
             &#39;meta&#39;,
@@ -740,7 +740,7 @@ cases.</p>
 
             :param str text: the text to process
         &#34;&#34;&#34;
-        self.md = markdown.Markdown([
+        self.md = markdown.Markdown(extensions=[
             &#39;codehilite&#39;,
             &#39;fenced_code&#39;,
             &#39;meta&#39;,
