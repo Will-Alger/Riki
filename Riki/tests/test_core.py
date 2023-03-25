@@ -140,7 +140,6 @@ class TestWiki:
         self.wiki = Wiki(self.tempdir)
 
     def test_constructor(self):
-<<<<<<< HEAD
         assert self.wiki.root == self.tempdir
 
     def test_path(self):
@@ -174,9 +173,3 @@ class TestWiki:
         url = 'nonexistent-page'
         page = self.wiki.delete(url)
         assert page is False
-=======
-        p = Page("path", "url", True)
-        assert p.url == "url"
-    
-
->>>>>>> core_testing
