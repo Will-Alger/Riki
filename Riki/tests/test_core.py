@@ -40,14 +40,15 @@ class TestProcessor:
     # FAILING TEST
     # codebase gives KeyError when running this test
     def test_process_meta(self):
-        sample = Processor("# Sample Title\n\nSome sample paragraph text")
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
 
         sample.process_pre()
         sample.process_markdown()
         sample.split_raw()
         sample.process_meta()
 
-        assert sample.meta == "# sample title"
+        test = OrderedDict([('meta', 'page')])
+        assert sample.meta == test
 
     # Above test fails and is required to run below tests.
     def test_process_post(self):
