@@ -27,6 +27,7 @@ from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
 
 
+
 bp = Blueprint('wiki', __name__)
 
 
@@ -187,7 +188,6 @@ def user_create():
 
         return redirect(request.args.get("next") or url_for('wiki.index'))
     return render_template('signup.html', form=form)
-
 
 
 
