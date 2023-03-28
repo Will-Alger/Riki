@@ -3,7 +3,7 @@ services:
   riki:
     image: riki:0.0.1
     ports:
-      - '5002:5002'
+      - '5002:5001'
     volumes:
       - 'riki_content:/opt/app/content'
       - './reports/cov_html:/opt/app/cov_html'
