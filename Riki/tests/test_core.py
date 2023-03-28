@@ -7,7 +7,6 @@ from wiki.core import Processor, Page, Wiki
 
 class TestProcessor:
     def test_constructor(self):
-<<<<<<< HEAD
         # Complete setup and execution is in this fixture
         sample = Processor("# Sample Title\n\nSome sample paragraph text")
         assert sample.input == "# Sample Title\n\nSome sample paragraph text"
@@ -65,10 +64,6 @@ class TestProcessor:
         #assert temp.markdown == ""
 
 
-=======
-        p = Processor("some text")
-        assert p.input == "some text"
->>>>>>> 6561c97 (began work on test coverage for image uploading)
 
 class TestPage:
     def setup_method(self):
