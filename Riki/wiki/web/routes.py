@@ -2,6 +2,7 @@
     Routes
     ~~~~~~
 """
+import os
 from flask import Blueprint
 from flask import flash
 from flask import redirect
@@ -24,6 +25,8 @@ from wiki.web import current_users
 from wiki.web.user import protect
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
+
+
 
 bp = Blueprint('wiki', __name__)
 
@@ -188,15 +191,52 @@ def user_create():
 
 
 
-
-@bp.route('/user/<int:user_id>/')
+@bp.route('/user/<string:user_id>/')
+@login_required
 def user_admin(user_id):
-    pass
+    if(current_user.get_id() == user_id):
+        return render_template('admin.html')
 
 
-@bp.route('/user/delete/<int:user_id>/')
+@bp.route('/user/delete/<string:user_id>/')
 def user_delete(user_id):
     pass
+
+# Image uploading
+
+@bp.route('/user/<string:user_id>/upload/', methods=['POST'])
+@login_required
+def upload_image(user_id):
+    if request.method == 'POST':
+        if 'an_image' not in request.files:
+            flash('There is no image!')
+        image = request.files['an_image']
+        if image.filename != '':
+            if image and current_wiki.allowed_file(image.filename):
+                current_wiki.save_image(image)
+                flash('Image Saved!')
+                return redirect(request.referrer)
+            else: 
+                flash('Unacceptable file type!')
+        flash('Image Not Saved!')
+        return redirect(request.referrer)
+    return redirect(request.referrer)
+    
+@bp.route('/user/<string:user_id>/images/')
+@login_required
+def user_images(user_id):
+    flash('This feature is not available yet!')
+    return redirect(request.referrer)
+    
+@bp.route('/img/')
+def index_images():
+    flash('This feature is not available yet!')
+    return redirect(request.referrer)
+
+@bp.route('/img/<int:img_id>/')
+def view_image(img_id):
+    flash('This feature is not available yet!')
+    return redirect(request.referrer)
 
 
 """

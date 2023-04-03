@@ -3,6 +3,7 @@
     ~~~~~~~~~
 """
 from collections import OrderedDict
+from PIL import Image
 from io import open
 import os
 import re
@@ -10,6 +11,7 @@ import re
 from flask import abort
 from flask import url_for
 import markdown
+import config
 
 
 def clean_url(url):
@@ -375,3 +377,13 @@ class Wiki(object):
                     matched.append(page)
                     break
         return matched
+    
+    # For image uploading
+    def allowed_file(self, filename): 
+        ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    def save_image(self, image):
+        path = os.path.join(config.PIC_BASE, image.filename)
+        image.save(path)

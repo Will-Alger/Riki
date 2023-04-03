@@ -1,9 +1,11 @@
 import pytest
 import tempfile, os
+from PIL import Image
 from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki
 
-from wiki.core import Processor, Page
+from wiki.core import Processor, Page, Wiki
+import config
 
 class TestProcessor:
     def test_constructor(self):
@@ -174,3 +176,18 @@ class TestWiki:
         url = 'nonexistent-page'
         page = self.wiki.delete(url)
         assert page is False
+
+    def test_allowed_file(self):
+        assert self.wiki.allowed_file('badfile') is False
+        assert self.wiki.allowed_file('goodfile.jpg')
+
+    def test_save_image(self):
+        file = Image.new("L", [128,128])
+        file.filename = "filename.jpg"
+        self.wiki.save_image(file)
+        full_path = config.PIC_BASE+file.filename
+        assert os.path.exists(full_path)
+        with Image.open(full_path) as im:
+            assert im.format == 'JPEG'
+            assert im.size == (128, 128)
+            assert im.mode == 'L'
