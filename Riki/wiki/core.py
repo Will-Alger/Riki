@@ -3,6 +3,7 @@
     ~~~~~~~~~
 """
 from collections import OrderedDict
+from PIL import Image
 from io import open
 import os
 import re
@@ -11,6 +12,7 @@ from flask import abort
 from flask import url_for
 import markdown
 import config
+
 
 def clean_url(url):
     """

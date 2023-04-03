@@ -77,11 +77,19 @@ def test_edit_post(client, testpage):
         assert "i edited the testpage" in filein.read()
     
 def test_upload_image(client):
-    client.get_id()
-    rv = client.post("/user/user/upload", headers={"Content-Type":"multipart/form-data"},
+    # login necessary
+    client.post('/user/login/', data=dict(
+        name='name',
+        password='1234'
+    ), follow_redirects=True)
+
+    # send the request
+    rv = client.post("/user/name/upload", headers={"Content-Type":"multipart/form-data"},
         data = {
             "an_image" : tempfile.NamedTemporaryFile(suffix=".jpg")
         }, 
         follow_redirects=True
     )
-    assert b'Image Saved!' in rv.data
+
+    # big win
+    assert b"Image Saved" in rv.data
