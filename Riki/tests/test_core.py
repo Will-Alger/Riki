@@ -29,14 +29,14 @@ class TestProcessor:
         assert sample.html == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
         
     def test_split_raw(self):
-        sample = Processor("# Sample Title\n\nSome sample paragraph text")
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
 
         sample.process_pre()
         sample.process_markdown()
         sample.split_raw()
 
-        assert sample.meta_raw == "# Sample Title"
-        assert sample.markdown == "Some sample paragraph text"
+        assert sample.meta_raw == "meta:page"
+        assert sample.markdown == "# Sample Title\nSome sample paragraph text"
     
 
     # FAILING TEST
@@ -54,16 +54,23 @@ class TestProcessor:
 
     # Above test fails and is required to run below tests.
     def test_process_post(self):
-        pass
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
+
+        sample.process_pre()
+        sample.process_markdown()
+        sample.split_raw()
+        sample.process_meta()
+        sample.process_post()
+        assert sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
 
     def test_process(self):
-        pass
-        #sample = Processor("# Sample Title\n\nSome sample paragraph text")
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
         
-        #temp = sample.process()
+        sample.process()
         
-        #assert temp.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
-        #assert temp.markdown == ""
+        assert sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
+        assert sample.markdown == "# Sample Title\nSome sample paragraph text"
+        assert sample.meta == OrderedDict([('meta', 'page')])
 
 
 
