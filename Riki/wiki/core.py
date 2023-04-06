@@ -12,6 +12,7 @@ from flask import abort
 from flask import url_for
 import markdown
 import config
+import hashlib
 
 
 def clean_url(url):
@@ -179,6 +180,7 @@ class Page(object):
             if not new:
                 self.load()   # Load page contents from file at `path` into instance
                 self.render() # Render page as HTML
+                self.generate_id() # Generate a unique ID for this page
 
     def __repr__(self):
         return "<Page: {}@{}>".format(self.url, self.path)
@@ -269,6 +271,13 @@ class Page(object):
     def tags(self, value):
         # Sets the "tags" metadata field
         self['tags'] = value
+
+    def generate_id(self):
+        # Generate an ID for the page by hashing its URL
+        self._meta['id'] = hashlib.sha256(self.url.encode('utf-8')).hexdigest()[:16]
+
+        # Return the ID
+        return self._meta['id']
 
 
 class Wiki(object):
