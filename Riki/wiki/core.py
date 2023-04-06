@@ -170,57 +170,85 @@ class Processor(object):
 
 class Page(object):
     def __init__(self, path, url, new=False):
-        self.path = path
-        self.url = url
-        self._meta = OrderedDict()
-        if not new:
-            self.load()
-            self.render()
+            # Initialize instance variables with provided values
+            self.path = path
+            self.url = url
+    
+            # Create an empty ordered dictionary for storing metadata
+            self._meta = OrderedDict()
+    
+            # Load and render the page contents if this is not a new page
+            if not new:
+                self.load()   # Load page contents from file at `path` into instance
+                self.render() # Render page as HTML
 
     def __repr__(self):
         return "<Page: {}@{}>".format(self.url, self.path)
 
     def load(self):
-        with open(self.path, 'r', encoding='utf-8') as f:
-            self.content = f.read()
+            # Open the file at `path` in read mode using UTF-8 encoding
+            with open(self.path, 'r', encoding='utf-8') as f:
+                # Read the contents of the file and store them in the instance's `content` attribute
+                self.content = f.read()
 
     def render(self):
+        # Create a `Processor` object to process the page content
         processor = Processor(self.content)
+
+        # Process the content and store the resulting HTML, body, and metadata in instance variables
         self._html, self.body, self._meta = processor.process()
 
     def save(self, update=True):
+        # Get the directory containing the page file
         folder = os.path.dirname(self.path)
+
+        # If the directory does not exist, create it
         if not os.path.exists(folder):
             os.makedirs(folder)
+
+        # Write metadata and page body to the page file
         with open(self.path, 'w', encoding='utf-8') as f:
+            # Write metadata to the file in the format `key: value`
             for key, value in list(self._meta.items()):
                 line = '%s: %s\n' % (key, value)
                 f.write(line)
+
+            # Write a newline character after the metadata
             f.write('\n')
+
+            # Write the page body to the file, replacing Windows-style line endings with Unix-style line endings
             f.write(self.body.replace('\r\n', '\n'))
+
+        # Reload and re-render the page if `update` is True
         if update:
-            self.load()
-            self.render()
+            self.load()   # Load updated content from file into instance
+            self.render() # Render updated content as HTML and update instance variables
 
     @property
     def meta(self):
+        # Returns an ordered dictionary containing metadata for the page
         return self._meta
 
     def __getitem__(self, name):
+        # Returns the value associated with a given metadata key
         return self._meta[name]
 
     def __setitem__(self, name, value):
+        # Sets the value associated with a given metadata key
         self._meta[name] = value
 
     @property
     def html(self):
+        # Returns the HTML code for the page
         return self._html
 
     def __html__(self):
+        # Returns the HTML code for the page (used by certain frameworks and libraries)
         return self.html
 
     @property
     def title(self):
+        # Tries to get the "title" metadata field; if it doesn't exist, returns the page URL
         try:
             return self['title']
         except KeyError:
@@ -228,10 +256,12 @@ class Page(object):
 
     @title.setter
     def title(self, value):
+        # Sets the "title" metadata field
         self['title'] = value
 
     @property
     def tags(self):
+        # Tries to get the "tags" metadata field; if it doesn't exist, returns an empty string
         try:
             return self['tags']
         except KeyError:
@@ -239,6 +269,7 @@ class Page(object):
 
     @tags.setter
     def tags(self, value):
+        # Sets the "tags" metadata field
         self['tags'] = value
 
 
