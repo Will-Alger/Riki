@@ -16,6 +16,12 @@ import markdown
 import config
 import hashlib
 
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from collections import Counter
 
 def clean_url(url):
     """
@@ -174,6 +180,7 @@ class Page(object):
             # Initialize instance variables with provided values
             self.path = path
             self.url = url
+            self.id = hashlib.sha256(self.url.encode('utf-8')).hexdigest()[:16]
     
             # Create an empty ordered dictionary for storing metadata
             self._meta = OrderedDict()
@@ -181,9 +188,7 @@ class Page(object):
             # Load and render the page contents if this is not a new page
             if not new:
                 self.load()   # Load page contents from file at `path` into instance
-                self.render() # Render page as HTML
-                self.generate_id() # Generate a unique ID for this page
-
+                self.render() # Render page as HTML      
     def __repr__(self):
         return "<Page: {}@{}>".format(self.url, self.path)
 
@@ -274,13 +279,29 @@ class Page(object):
         # Sets the "tags" metadata field
         self['tags'] = value
 
-    def generate_id(self):
-        # Generate an ID for the page by hashing its URL
-        self._meta['id'] = hashlib.sha256(self.url.encode('utf-8')).hexdigest()[:16]
-
-        # Return the ID
-        return self._meta['id']
-
+    # This method tokenizes the title and body of a document, removes stopwords, and counts the frequency of each word.
+    def tokenize_and_count(self):
+        # Concatenate the title and body into a single string
+        content = self.title + '\n' + self.body
+    
+        # Tokenize the string into lowercase words
+        tokens = word_tokenize(content.lower())
+    
+        # Get a list of English stopwords
+        english_stopwords = stopwords.words('english')
+    
+        # Remove stopwords from the list of tokens
+        tokens_wo_stopwords = [t for t in tokens if t not in english_stopwords]
+    
+        # Count the frequency of each token (word)
+        token_freq = Counter(tokens_wo_stopwords)
+    
+        # Convert the counter object to a dictionary
+        result = dict(token_freq)
+    
+        # Return the dictionary of word frequencies
+        return result
+      
 
 class Wiki(object):
     def __init__(self, root):
