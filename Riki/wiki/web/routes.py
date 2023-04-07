@@ -171,14 +171,28 @@ def delete(url):
     conn = sqlite3.connect('/var/db/riki.db')
     c = conn.cursor()
 
-    # Remove rows from the pages table where doc_id = page.id
-    c.execute("DELETE FROM pages WHERE doc_id=?", (page.id,))
+    try:
+        # Start a new transaction
+        c.execute("BEGIN TRANSACTION")
 
-    # Commit and close the database connection
-    conn.commit()
+        # Remove rows from the pages table where doc_id = page.id
+        c.execute("DELETE FROM pages WHERE doc_id=?", (page.id,))
+
+        # Remove rows from the page_index table where doc_id = page.id
+        c.execute("DELETE FROM page_index WHERE doc_id=?", (page.id,))
+
+        # Commit the transaction
+        conn.commit()
+
+        flash('Page "%s" was deleted.' % page.title, 'success')
+    except Exception as e:
+        # Roll back the transaction if an error occurs
+        conn.rollback()
+        flash('An error occurred while deleting the page: %s' % str(e), 'error')
+
+    # Close the database connection
     conn.close()
 
-    flash('Page "%s" was deleted.' % page.title, 'success')
     return redirect(url_for('wiki.home'))
 
 
