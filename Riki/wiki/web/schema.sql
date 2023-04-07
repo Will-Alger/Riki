@@ -9,7 +9,7 @@ CREATE TABLE users (
 CREATE TABLE pages (
      doc_id TEXT NOT NULL PRIMARY KEY,
      title TEXT,
-     context TEXT
+     body TEXT
 );
 
 CREATE TABLE page_index (
