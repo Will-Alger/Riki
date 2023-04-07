@@ -23,6 +23,9 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
 
+from bs4 import BeautifulSoup
+import markdown
+
 def clean_url(url):
     """
         Cleans the url and corrects various errors. Removes multiple
@@ -279,16 +282,20 @@ class Page(object):
         # Sets the "tags" metadata field
         self['tags'] = value
 
-    # This method tokenizes the title and body of a document, removes stopwords, and counts the frequency of each word.
+
+    # This method tokenizes the title and body of an HTML document, removes stopwords, and counts the frequency of each word.
     def tokenize_and_count(self):
-        # Concatenate the title and body into a single string
-        content = self.title + '\n' + self.body
+        # Extract the text content from the HTML body using Beautiful Soup
+        body_text = BeautifulSoup(self.html, 'html.parser').get_text()
     
-        # Tokenize the string into lowercase words
-        tokens = word_tokenize(content.lower())
+        # Concatenate the body text and title into a single string
+        page_text = body_text + " " + self.title
     
         # Get a list of English stopwords
         english_stopwords = stopwords.words('english')
+    
+        # Tokenize the page text into lowercase words
+        tokens = word_tokenize(page_text.lower())
     
         # Remove stopwords from the list of tokens
         tokens_wo_stopwords = [t for t in tokens if t not in english_stopwords]
@@ -301,7 +308,7 @@ class Page(object):
     
         # Return the dictionary of word frequencies
         return result
-      
+        
 
 class Wiki(object):
     def __init__(self, root):
