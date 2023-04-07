@@ -7,6 +7,7 @@ services:
     volumes:
       - 'riki_data:/var/db'
       - 'riki_content:/opt/app/content'
+      - 'riki_images:/opt/img'
       - './reports/cov_html:/opt/app/cov_html'
       - './reports/docs:/opt/app/wiki/web/static/docs'
     env_file:
@@ -16,3 +17,6 @@ volumes:
     driver: local
   riki_data:
     driver: local
+  riki_images:
+    driver: local
+  

@@ -5,11 +5,13 @@
 from collections import OrderedDict
 from PIL import Image
 from io import open
+from io import BytesIO
 import os
 import re
 
 from flask import abort
 from flask import url_for
+from flask import send_file
 import markdown
 import config
 
@@ -387,3 +389,10 @@ class Wiki(object):
     def save_image(self, image):
         path = os.path.join(config.PIC_BASE, image.filename)
         image.save(path)
+
+    # for image viewing
+    def serve_pil_image(self, pil_img, type):
+        img_io = BytesIO()
+        pil_img.save(img_io, type, quality=70)
+        img_io.seek(0)
+        return send_file(img_io, mimetype='image/'+type.lower())

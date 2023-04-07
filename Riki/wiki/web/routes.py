@@ -3,16 +3,19 @@
     ~~~~~~
 """
 import os
+import config
 from flask import Blueprint
 from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from flask import send_file
 from flask_login import current_user
 from flask_login import login_required
 from flask_login import login_user
 from flask_login import logout_user
+
 
 from wiki.core import Processor
 from wiki.web.forms import EditorForm
@@ -25,7 +28,7 @@ from wiki.web import current_users
 from wiki.web.user import protect
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
-
+from PIL import Image
 
 
 bp = Blueprint('wiki', __name__)
@@ -233,10 +236,15 @@ def index_images():
     flash('This feature is not available yet!')
     return redirect(request.referrer)
 
-@bp.route('/img/<int:img_id>/')
-def view_image(img_id):
-    flash('This feature is not available yet!')
-    return redirect(request.referrer)
+@bp.route('/img/<string:filename>/', methods=['GET'])
+def view_image(filename):
+    type = filename.rsplit('.', 1)[1].upper()
+    if type=='JPG':
+        type='JPEG'
+    img = Image.open(os.path.join(config.PIC_BASE, filename))
+    return current_wiki.serve_pil_image(img, type)
+
+
 
 
 """
