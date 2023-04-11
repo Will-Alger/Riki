@@ -4,6 +4,7 @@
 """
 import os
 import config
+from io import BytesIO
 from flask import Blueprint
 from flask import flash
 from flask import redirect
@@ -18,6 +19,7 @@ from flask_login import logout_user
 
 
 from wiki.core import Processor
+from wiki.core import Wiki
 from wiki.web.forms import EditorForm
 from wiki.web.forms import LoginForm
 from wiki.web.forms import SignupForm
@@ -210,20 +212,19 @@ def user_delete(user_id):
 @bp.route('/user/<string:user_id>/upload/', methods=['POST'])
 @login_required
 def upload_image(user_id):
-    if request.method == 'POST':
-        if 'an_image' not in request.files:
-            flash('There is no image!')
-        image = request.files['an_image']
-        if image.filename != '':
-            if image and current_wiki.allowed_file(image.filename):
-                current_wiki.save_image(image)
-                flash('Image Saved!')
-                return redirect(request.referrer)
-            else: 
-                flash('Unacceptable file type!')
-        flash('Image Not Saved!')
-        return redirect(request.referrer)
+    if 'an_image' not in request.files:
+        flash('There is no image!')
+    image = request.files['an_image']
+    if image.filename != '':
+        if image and current_wiki.allowed_file(image.filename):
+            current_wiki.save_image(image)
+            flash('Image Saved!')
+            return redirect(request.referrer)
+        else: 
+            flash('Unacceptable file type!')
+    flash('Image Not Saved!')
     return redirect(request.referrer)
+    
     
 @bp.route('/user/<string:user_id>/images/')
 @login_required
@@ -242,11 +243,11 @@ def view_image(filename):
     if type=='JPG':
         type='JPEG'
     img = Image.open(os.path.join(config.PIC_BASE, filename))
-    return current_wiki.serve_pil_image(img, type)
-
-
-
-
+    img_io = BytesIO()
+    img.save(img_io, type, quality=70)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/'+type.lower())
+    
 """
     Error Handlers
     ~~~~~~~~~~~~~~
