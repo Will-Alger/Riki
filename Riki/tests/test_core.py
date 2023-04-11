@@ -192,7 +192,7 @@ class TestWiki:
         file = Image.new("L", [128,128])
         file.filename = "filename.jpg"
         self.wiki.save_image(file)
-        full_path = config.PIC_BASE+file.filename
+        full_path = os.path.join(config.PIC_BASE, file.filename)
         assert os.path.exists(full_path)
         with Image.open(full_path) as im:
             assert im.format == 'JPEG'

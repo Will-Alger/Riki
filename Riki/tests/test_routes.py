@@ -3,6 +3,7 @@ from unittest.mock import patch
 import os
 
 from Riki import app
+from PIL import Image
 import wiki.web.routes
 import tempfile
 
@@ -93,3 +94,41 @@ def test_upload_image(client):
 
     # big win
     assert b"Image Saved" in rv.data
+
+def test_upload_image_error(client):
+    # login necessary
+    client.post('/user/login/', data=dict(
+        name='name',
+        password='1234'
+    ), follow_redirects=True)
+
+    # send the request
+    rv = client.post("/user/name/upload", headers={"Content-Type":"multipart/form-data"},
+        data = {
+            "an_image" : tempfile.NamedTemporaryFile(suffix=".bad")
+        }, 
+        follow_redirects=True
+    )
+
+    # big win
+    assert b"Image Not Saved!" in rv.data
+
+def test_view_image(client):
+    client.post('/user/login/', data=dict(
+        name='name',
+        password='1234'
+    ), follow_redirects=True)
+
+    file = Image.new('RGB', [128,128])
+    file.filename = 'filename.jpg'
+
+    client.post("/user/name/upload", headers={"Content-Type":"multipart/form-data"},
+        data = {
+            "an_image" : file
+        }, 
+        follow_redirects=True
+    )
+
+    response = client.get('/img/filename.jpg/')
+
+    assert response.status_code == 200

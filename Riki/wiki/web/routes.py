@@ -3,18 +3,23 @@
     ~~~~~~
 """
 import os
+import config
+from io import BytesIO
 from flask import Blueprint
 from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from flask import send_file
 from flask_login import current_user
 from flask_login import login_required
 from flask_login import login_user
 from flask_login import logout_user
 
+
 from wiki.core import Processor
+from wiki.core import Wiki
 from wiki.web.forms import EditorForm
 from wiki.web.forms import LoginForm
 from wiki.web.forms import SignupForm
@@ -25,7 +30,7 @@ from wiki.web import current_users
 from wiki.web.user import protect
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
-
+from PIL import Image
 
 
 bp = Blueprint('wiki', __name__)
@@ -207,20 +212,19 @@ def user_delete(user_id):
 @bp.route('/user/<string:user_id>/upload/', methods=['POST'])
 @login_required
 def upload_image(user_id):
-    if request.method == 'POST':
-        if 'an_image' not in request.files:
-            flash('There is no image!')
-        image = request.files['an_image']
-        if image.filename != '':
-            if image and current_wiki.allowed_file(image.filename):
-                current_wiki.save_image(image)
-                flash('Image Saved!')
-                return redirect(request.referrer)
-            else: 
-                flash('Unacceptable file type!')
-        flash('Image Not Saved!')
-        return redirect(request.referrer)
+    if 'an_image' not in request.files:
+        flash('There is no image!')
+    image = request.files['an_image']
+    if image.filename != '':
+        if image and current_wiki.allowed_file(image.filename):
+            current_wiki.save_image(image)
+            flash('Image Saved!')
+            return redirect(request.referrer)
+        else: 
+            flash('Unacceptable file type!')
+    flash('Image Not Saved!')
     return redirect(request.referrer)
+    
     
 @bp.route('/user/<string:user_id>/images/')
 @login_required
@@ -233,12 +237,17 @@ def index_images():
     flash('This feature is not available yet!')
     return redirect(request.referrer)
 
-@bp.route('/img/<int:img_id>/')
-def view_image(img_id):
-    flash('This feature is not available yet!')
-    return redirect(request.referrer)
-
-
+@bp.route('/img/<string:filename>/', methods=['GET'])
+def view_image(filename):
+    type = filename.rsplit('.', 1)[1].upper()
+    if type=='JPG':
+        type='JPEG'
+    img = Image.open(os.path.join(config.PIC_BASE, filename))
+    img_io = BytesIO()
+    img.save(img_io, type, quality=70)
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/'+type.lower())
+    
 """
     Error Handlers
     ~~~~~~~~~~~~~~
