@@ -30,6 +30,7 @@ from wiki.web import current_users
 from wiki.web.user import protect
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
+from wiki.web.pageDAO import PageDaoManager
 from PIL import Image
 import sqlite3
 
@@ -82,28 +83,29 @@ def edit(url):
         form.populate_obj(page)
         page.save()
 
-        result = page.tokenize_and_count()
-        flash(result)
 
-        #TODO: create a DAO class to handle the database handling page 
+        # result = page.tokenize_and_count()
+        pageDaoManager = PageDaoManager('/var/db/riki.db')
+        pageDaoManager.update_page_index(page)
+        pageDaoManager.close_db()
 
-        conn = sqlite3.connect('/var/db/riki.db')
-        c = conn.cursor()
+   
 
-        c.execute("INSERT OR IGNORE INTO pages (doc_id) VALUES (?)", (page.id,))
+        # conn = sqlite3.connect('/var/db/riki.db')
+        # c = conn.cursor()
 
         # Delete rows from the page_index table where doc_id = page.id and word is not in result
-        c.execute("""
-            DELETE FROM page_index 
-            WHERE doc_id = ? AND word NOT IN ({})
-        """.format(', '.join('?' for _ in result)), [page.id] + list(result.keys()))
+        # c.execute("""
+        #     DELETE FROM page_index 
+        #     WHERE doc_id = ? AND word NOT IN ({})
+        # """.format(', '.join('?' for _ in result)), [page.id] + list(result.keys()))
 
         # Insert or update rows in the page_index table based on the result dictionary
-        for token, frequency in result.items():
-            c.execute("INSERT OR REPLACE INTO page_index (word, doc_id, frequency) VALUES (?,?,?)", (token, page.id, frequency))
+        # for token, frequency in result.items():
+        #     c.execute("INSERT OR REPLACE INTO page_index (word, doc_id, frequency) VALUES (?,?,?)", (token, page.id, frequency))
 
-        conn.commit()
-        conn.close()
+        # conn.commit()
+        # conn.close()
 
         flash('"%s" was saved.' % page.title, 'success')
         return redirect(url_for('wiki.display', url=url))
@@ -126,7 +128,7 @@ def move(url):
     # Get the page object based on the URL provided
     page = current_wiki.get_or_404(url)
 
-    # Get the ID of the old page
+    # Get the id of the old page
     old_page_id = current_wiki.get(url).id
 
     # Create a URLForm object with the page data
@@ -139,22 +141,13 @@ def move(url):
         # Move the page to the new URL
         current_wiki.move(url, newurl)
 
-        # Get the ID of the new page
+        # Get the id of the new page
         new_page_id = current_wiki.get(newurl).id
 
-        # Open a connection to the SQLite database
-        conn = sqlite3.connect('/var/db/riki.db')
-        c = conn.cursor()
-
-        # Update the "doc_id" value in the "pages" table for the old page to the ID of the new page
-        c.execute("UPDATE pages SET doc_id = ? WHERE doc_id = ?", (new_page_id, old_page_id))
-
-        # Update the "doc_id" value in the "page_index" table for the old page to the ID of the new page
-        c.execute("UPDATE page_index SET doc_id = ? WHERE doc_id = ?", (new_page_id, old_page_id))
-
-        # Commit the changes and close the connection
-        conn.commit()
-        conn.close()
+        # Update the page_index tokens to point to the new page id
+        pageDaoManager = PageDaoManager('/var/db/riki.db')
+        pageDaoManager.update_page_index_id(new_page_id, old_page_id)
+        pageDaoManager.close_db()
 
         # Redirect the user to the new URL
         return redirect(url_for('wiki.display', url=newurl))
@@ -171,27 +164,11 @@ def delete(url):
     conn = sqlite3.connect('/var/db/riki.db')
     c = conn.cursor()
 
-    try:
-        # Start a new transaction
-        c.execute("BEGIN TRANSACTION")
+    pageDaoManager = PageDaoManager('/var/db/riki.db')
+    pageDaoManager.delete(page)
+    pageDaoManager.close_db()
 
-        # Remove rows from the pages table where doc_id = page.id
-        c.execute("DELETE FROM pages WHERE doc_id=?", (page.id,))
-
-        # Remove rows from the page_index table where doc_id = page.id
-        c.execute("DELETE FROM page_index WHERE doc_id=?", (page.id,))
-
-        # Commit the transaction
-        conn.commit()
-
-        flash('Page "%s" was deleted.' % page.title, 'success')
-    except Exception as e:
-        # Roll back the transaction if an error occurs
-        conn.rollback()
-        flash('An error occurred while deleting the page: %s' % str(e), 'error')
-
-    # Close the database connection
-    conn.close()
+    flash('Page "%s" was deleted.' % page.title, 'success')
 
     return redirect(url_for('wiki.home'))
 
