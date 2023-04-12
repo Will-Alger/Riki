@@ -5,6 +5,8 @@ FROM python:3.9.13-bullseye
 RUN mkdir /opt/app
 RUN mkdir /var/db
 RUN mkdir /opt/img
+RUN apt update
+RUN apt install sqlite3
 # set that as our working directory
 WORKDIR /opt/app
 # copy the requirements file
