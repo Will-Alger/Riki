@@ -77,29 +77,12 @@ def edit(url):
         form.populate_obj(page)
         page.save()
 
-
-        # result = page.tokenize_and_count()
+        # Connect to the database
         pageDaoManager = PageDaoManager('/var/db/riki.db')
+
+        # Update the page index
         pageDaoManager.update_page_index(page)
         pageDaoManager.close_db()
-
-   
-
-        # conn = sqlite3.connect('/var/db/riki.db')
-        # c = conn.cursor()
-
-        # Delete rows from the page_index table where doc_id = page.id and word is not in result
-        # c.execute("""
-        #     DELETE FROM page_index 
-        #     WHERE doc_id = ? AND word NOT IN ({})
-        # """.format(', '.join('?' for _ in result)), [page.id] + list(result.keys()))
-
-        # Insert or update rows in the page_index table based on the result dictionary
-        # for token, frequency in result.items():
-        #     c.execute("INSERT OR REPLACE INTO page_index (word, doc_id, frequency) VALUES (?,?,?)", (token, page.id, frequency))
-
-        # conn.commit()
-        # conn.close()
 
         flash('"%s" was saved.' % page.title, 'success')
         return redirect(url_for('wiki.display', url=url))
@@ -138,8 +121,10 @@ def move(url):
         # Get the id of the new page
         new_page_id = current_wiki.get(newurl).id
 
-        # Update the page_index tokens to point to the new page id
+        # Connect to the database
         pageDaoManager = PageDaoManager('/var/db/riki.db')
+
+        # Update the page_index tokens to point to the new page id
         pageDaoManager.update_page_index_id(new_page_id, old_page_id)
         pageDaoManager.close_db()
 
