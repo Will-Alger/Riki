@@ -5,13 +5,36 @@ class PageDaoManager(object):
       self.connection = sqlite3.connect(path)
       self.cur = self.connection.cursor()
 
-    def save_page(self, page):
-      self.cur.execute("INSERT OR IGNORE INTO pages (doc_id, title, body) VALUES (?, ?, ?)", (page.id, page.title, page.body))
-          
+
+    def cleanup(self, page, current_page_index,):
+      self.cur.execute("""
+          DELETE FROM page_index 
+          WHERE doc_id = ? AND word NOT IN ({})
+      """.format(', '.join('?' for _ in current_page_index)), [page.id] + list(current_page_index.keys()))
+      
 
     def update_page_index(self, page):
       page_index = page.tokenize_and_count()
-      cur
+      self.cleanup(page, page_index)
+      for token, frequency in page_index.items():
+        self.cur.execute("INSERT OR REPLACE INTO page_index (word, doc_id, frequency) VALUES (?,?,?)", (token, page.id, frequency)) 
+      self.connection.commit()
+  
+    
+    def update_page_index_id(self, new_id, old_id):
+      # Update the "doc_id" value in the "page_index" table for the old page to the ID of the new page
+      self.cur.execute("UPDATE page_index SET doc_id = ? WHERE doc_id = ?", (new_id, old_id))
+      self.connection.commit()
+      
+
+
+    def delete(self, page):
+      # Remove rows from the page_index table where doc_id = page.id
+      self.cur.execute("DELETE FROM page_index WHERE doc_id=?", (page.id,))
+      self.connection.commit()
+
+    def close_db(self):
+      self.connection.close()
 
     
     
