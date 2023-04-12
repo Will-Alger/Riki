@@ -282,32 +282,40 @@ class Page(object):
         # Sets the "tags" metadata field
         self['tags'] = value
 
-
-    # This method tokenizes the title and body of an HTML document, removes stopwords, and counts the frequency of each word.
-    def tokenize_and_count(self):
+    def get_page_text(self):
         # Extract the text content from the HTML body using Beautiful Soup
         body_text = BeautifulSoup(self.html, 'html.parser').get_text()
-    
-        # Concatenate the body text and title into a single string
-        page_text = body_text + " " + self.title
-    
+        # Concatenate the body text and title into a single string with a space in between
+        return (body_text + " " + self.title)
+
+    def tokenize(self, page_text):
+        # Tokenize the lower case page text
+        return word_tokenize(page_text.lower())
+
+    def remove_stopwords(self, tokens):
         # Get a list of English stopwords
         english_stopwords = stopwords.words('english')
+        return [t for t in tokens if t not in english_stopwords]
     
-        # Tokenize the page text into lowercase words
-        tokens = word_tokenize(page_text.lower())
-    
-        # Remove stopwords from the list of tokens
-        tokens_wo_stopwords = [t for t in tokens if t not in english_stopwords]
-    
-        # Count the frequency of each token (word)
-        token_freq = Counter(tokens_wo_stopwords)
-    
-        # Convert the counter object to a dictionary
-        result = dict(token_freq)
-    
+    def token_frequency(self, tokens_wo_stopwords):
+        return dict(Counter(tokens_wo_stopwords))
+
+
+    def tokenize_and_count(self):
+        # Get page text without markdown
+        page_text = self.get_page_text()
+
+        # Tokenize the page text
+        tokens = self.tokenize(page_text)
+
+        # Remove stopwords from tokens
+        tokens_wo_stopwords = self.remove_stopwords(tokens)
+
+        # translate remaining tokens into dictionary of pairs [token -> token count]
+        token_freq = self.token_frequency(tokens_wo_stopwords)
+
         # Return the dictionary of word frequencies
-        return result
+        return token_freq
         
 
 class Wiki(object):
