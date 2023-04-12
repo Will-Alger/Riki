@@ -6,18 +6,21 @@ class PageDaoManager(object):
       self.cur = self.connection.cursor()
 
 
-    def cleanup(self, page, current_page_index,):
+    def update_page_index(self, page):
+      # Gather the page_index 
+      page_index = page.tokenize_and_count()
+
+      # Delete the old tokens that aren't in the current page_index
       self.cur.execute("""
           DELETE FROM page_index 
           WHERE doc_id = ? AND word NOT IN ({})
-      """.format(', '.join('?' for _ in current_page_index)), [page.id] + list(current_page_index.keys()))
-      
+      """.format(', '.join('?' for _ in page_index)), [page.id] + list(page_index.keys()))
 
-    def update_page_index(self, page):
-      page_index = page.tokenize_and_count()
-      self.cleanup(page, page_index)
+      # Add a new token and frequency in page_index, or update existing tokens
       for token, frequency in page_index.items():
         self.cur.execute("INSERT OR REPLACE INTO page_index (word, doc_id, frequency) VALUES (?,?,?)", (token, page.id, frequency)) 
+      
+      # Save the changes to the page_index  
       self.connection.commit()
   
     
