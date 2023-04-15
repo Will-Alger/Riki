@@ -6,16 +6,21 @@ from Riki import app
 from PIL import Image
 import wiki.web.routes
 import tempfile
+from wiki.web.db import *
 
 @pytest.fixture
 def client():
-    app.config["TESTING"] = True #sets testing to true, needed for Flask to return proper response
+    db_fd, db_path = tempfile.mkstemp()
+    app.config['DATABASE'] = db_path
+    app.config['TESTING'] = True
     app.config["PRIVATE"] = False #sets PRIVATE to false to disable user auth (see protect dectorator in users.py)
     app.config["WTF_CSRF_ENABLED"] = False #disables CSRF in WTForms so that we can simulate posts
     with app.test_client() as client:
         with app.app_context():
-            pass #if we need stuff in app context we can do it here
+            init_db()
         yield client
+    os.close(db_fd)
+    os.unlink(db_path)
 
 #this fixture will create a page that we can test on, and destroy it when our
 #test is over.  Check out the official pytest docs for more details on fixtures.
@@ -26,8 +31,7 @@ def testpage():
         testpage.flush() #flush buffer so contents are actually written to file
         yield testpage #yield the fixutre
         os.unlink("content/testpage.md") #after our test is over, this code executes to delete the file.  anything after yeild in a fixture is cleanup
-        
-
+    
 def test_home(client):
     rv = client.get('/', follow_redirects=True)
     assert b'Main' in rv.data
