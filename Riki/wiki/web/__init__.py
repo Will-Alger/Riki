@@ -28,11 +28,12 @@ def get_users():
 
 current_users = LocalProxy(get_users)
 
-
 def create_app(directory):
     app = Flask(__name__)
     app.config['CONTENT_DIR'] = directory
     app.config['TITLE'] = 'wiki'
+    app.config['DATABASE'] = os.path.join('/var/db', 'riki.db')
+
     try:
         app.config.from_pyfile(
             os.path.join(app.config.get('CONTENT_DIR'), 'config.py')
@@ -46,8 +47,11 @@ def create_app(directory):
     from wiki.web.routes import bp
     app.register_blueprint(bp)
 
+    from wiki.web.db import init_db
+    if not os.path.exists(app.config['DATABASE']):
+        with app.app_context():
+            init_db()
     return app
-
 
 loginmanager = LoginManager()
 loginmanager.login_view = 'wiki.user_login'
