@@ -161,9 +161,7 @@ def move(url):
 def delete(url):
     page = current_wiki.get_or_404(url)
     current_wiki.delete(url)
-    conn = sqlite3.connect('/var/db/riki.db')
-    c = conn.cursor()
-
+    
     pageDaoManager = PageDaoManager()
     pageDaoManager.delete(page)
     pageDaoManager.close_db()
