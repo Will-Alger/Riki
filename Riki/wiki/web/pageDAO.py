@@ -1,11 +1,14 @@
+
 import sqlite3
+from wiki.web.db import get_db
+
+# from flask import current_app, g
 
 class PageDaoManager(object):
-    def __init__(self, path):
-      self.connection = sqlite3.connect(path)
+    def __init__(self):
+      self.connection = get_db()
       self.cur = self.connection.cursor()
-
-
+        
     def update_page_index(self, page):
       # Gather the page_index 
       page_index = page.tokenize_and_count()

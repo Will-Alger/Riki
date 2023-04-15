@@ -5,7 +5,7 @@ from flask import Flask
 from flask import g
 from flask_login import LoginManager
 from werkzeug.local import LocalProxy
-
+from wiki.web.db import *
 from wiki.core import Wiki
 from wiki.web.user import UserManager
 
@@ -47,7 +47,7 @@ def create_app(directory):
     from wiki.web.routes import bp
     app.register_blueprint(bp)
 
-    from wiki.web.db import init_db
+    
     if not os.path.exists(app.config['DATABASE']):
         with app.app_context():
             init_db()

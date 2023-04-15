@@ -84,11 +84,11 @@ def edit(url):
         page.save()
 
         # Connect to the database
-        pageDaoManager = PageDaoManager('/var/db/riki.db')
+        pageDaoManager = PageDaoManager()
 
         # Update the page index
         pageDaoManager.update_page_index(page)
-        pageDaoManager.close_db()
+
 
         flash('"%s" was saved.' % page.title, 'success')
         return redirect(url_for('wiki.display', url=url))
@@ -128,7 +128,7 @@ def move(url):
         new_page_id = current_wiki.get(newurl).id
 
         # Connect to the database
-        pageDaoManager = PageDaoManager('/var/db/riki.db')
+        pageDaoManager = PageDaoManager()
 
         # Update the page_index tokens to point to the new page id
         pageDaoManager.update_page_index_id(new_page_id, old_page_id)
@@ -149,7 +149,7 @@ def delete(url):
     conn = sqlite3.connect('/var/db/riki.db')
     c = conn.cursor()
 
-    pageDaoManager = PageDaoManager('/var/db/riki.db')
+    pageDaoManager = PageDaoManager()
     pageDaoManager.delete(page)
     pageDaoManager.close_db()
 
