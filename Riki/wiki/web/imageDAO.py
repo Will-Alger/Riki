@@ -1,11 +1,12 @@
 import sqlite3
 import uuid
 from wiki.web.userDAO import UserDaoManager
+from wiki.web.db import *
 
 
 class ImageDAO(object):
     def __init__(self, path):
-        self.connection = sqlite3.connect(path)
+        self.connection = get_db()
         self.cur = self.connection.cursor()
         self.userDAO = UserDaoManager('/var/db/riki.db')
 

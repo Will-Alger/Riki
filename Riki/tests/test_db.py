@@ -11,24 +11,6 @@ import pytest
 from wiki.web.userDAO import UserDao, UserDaoManager
 from wiki.web.db import *
 
-
-# @pytest.fixture
-# def client():
-#     db_fd, db_path = tempfile.mkstemp()
-#     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-#     app.config['TESTING'] = True
-#     app.config["PRIVATE"] = False #sets PRIVATE to false to disable user auth (see protect dectorator in users.py)
-#     app.config["WTF_CSRF_ENABLED"] = False #disables CSRF in WTForms so that we can simulate posts
-
-#     init_db(db_path, force=True)
-#     with app.test_client() as client:
-#         client.db_path = db_path # Add the database path as an attribute of the client
-#         with app.app_context():
-#             pass #if we need stuff in app context we can do it here
-#         yield client
-#     os.close(db_fd)
-#     os.unlink(db_path)
-
 @pytest.fixture
 def client():
     db_fd, db_path = tempfile.mkstemp()

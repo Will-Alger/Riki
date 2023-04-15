@@ -31,11 +31,11 @@ from wiki.web.user import protect
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
 from wiki.web.imageDAO import ImageDAO
+from wiki.web.pageDAO import PageDaoManager
+import sqlite3
 from PIL import Image
 
-
 bp = Blueprint('wiki', __name__)
-
 
 @bp.route('/')
 @protect
@@ -67,19 +67,32 @@ def create():
     if form.validate_on_submit():
         return redirect(url_for(
             'wiki.edit', url=form.clean_url(form.url.data)))
+    
+    
     return render_template('create.html', form=form)
-
 
 @bp.route('/edit/<path:url>/', methods=['GET', 'POST'])
 @protect
 def edit(url):
     page = current_wiki.get(url)
     form = EditorForm(obj=page)
+
+
     if form.validate_on_submit():
         if not page:
             page = current_wiki.get_bare(url)
+
+
         form.populate_obj(page)
         page.save()
+
+        # Connect to the database
+        pageDaoManager = PageDaoManager()
+
+        # Update the page index
+        pageDaoManager.update_page_index(page)
+
+
         flash('"%s" was saved.' % page.title, 'success')
         return redirect(url_for('wiki.display', url=url))
     return render_template('editor.html', form=form, page=page)
@@ -94,15 +107,53 @@ def preview():
     return data['html']
 
 
+# This route handles moving a page to a new URL
+# This route handles moving a page to a new URL
 @bp.route('/move/<path:url>/', methods=['GET', 'POST'])
 @protect
 def move(url):
+    # Get the page object based on the URL provided
+    # Get the page object based on the URL provided
     page = current_wiki.get_or_404(url)
+
+    # Get the id of the old page
+    old_page_id = current_wiki.get(url).id
+
+    # Create a URLForm object with the page data
+
+    # Get the id of the old page
+    old_page_id = current_wiki.get(url).id
+
+    # Create a URLForm object with the page data
     form = URLForm(obj=page)
+
+
     if form.validate_on_submit():
+        # Get the new URL from the form data
+        # Get the new URL from the form data
         newurl = form.url.data
+
+        # Move the page to the new URL
+
+        # Move the page to the new URL
         current_wiki.move(url, newurl)
+
+        # Get the id of the new page
+        new_page_id = current_wiki.get(newurl).id
+
+        # Connect to the database
+        pageDaoManager = PageDaoManager()
+
+        # Update the page_index tokens to point to the new page id
+        pageDaoManager.update_page_index_id(new_page_id, old_page_id)
+        pageDaoManager.close_db()
+
+        # Redirect the user to the new URL
         return redirect(url_for('wiki.display', url=newurl))
+
+    # Render the move.html template with the form and page objects
+
+    # Render the move.html template with the form and page objects
     return render_template('move.html', form=form, page=page)
 
 
@@ -111,7 +162,13 @@ def move(url):
 def delete(url):
     page = current_wiki.get_or_404(url)
     current_wiki.delete(url)
+    
+    pageDaoManager = PageDaoManager()
+    pageDaoManager.delete(page)
+    pageDaoManager.close_db()
+
     flash('Page "%s" was deleted.' % page.title, 'success')
+
     return redirect(url_for('wiki.home'))
 
 
@@ -171,14 +228,14 @@ def user_index():
 def user_create():
 
     form = SignupForm()
-    userDaoManager = UserDaoManager('/var/db/riki.db')
+   
 
     if request.method == 'POST' and form.validate_on_submit():
         name = form.name.data
         email = form.email.data
         password = form.password.data
         confirm_password = form.confirm_password.data
-
+        userDaoManager = UserDaoManager('/var/db/riki.db')
         user = UserDao(name, email, password)
         userDaoManager.create_user(user)
         users = userDaoManager.get_users()
