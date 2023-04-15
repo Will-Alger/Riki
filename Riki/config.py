@@ -8,4 +8,5 @@ CONTENT_DIR = os.environ.get("CONTENT_DIR")
 USER_DIR = os.environ.get("USER_DIR")
 NUMBER_OF_HISTORY = os.environ.get("NUMBER_OF_HISTORY")
 PRIVATE = os.environ.get("PRIVATE")
+
 #PRIVATE = False

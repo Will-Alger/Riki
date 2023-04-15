@@ -30,6 +30,7 @@ from wiki.web import current_users
 from wiki.web.user import protect
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
+from wiki.web.imageDAO import ImageDAO
 from PIL import Image
 
 
@@ -208,6 +209,10 @@ def user_delete(user_id):
     pass
 
 # Image uploading
+def allowed_file(filename): 
+        ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @bp.route('/user/<string:user_id>/upload/', methods=['POST'])
 @login_required
@@ -216,8 +221,12 @@ def upload_image(user_id):
         flash('There is no image!')
     image = request.files['an_image']
     if image.filename != '':
-        if image and current_wiki.allowed_file(image.filename):
-            current_wiki.save_image(image)
+        if image and allowed_file(image.filename):
+            path = os.path.join(config.PIC_BASE, image.filename)
+            image.save(path)
+            dao = ImageDAO('/var/db/riki.db')
+            dao.save_image(image.filename, userID=user_id)
+            dao.close_db()
             flash('Image Saved!')
             return redirect(request.referrer)
         else: 
@@ -234,8 +243,8 @@ def user_images(user_id):
     
 @bp.route('/img/')
 def index_images():
-    flash('This feature is not available yet!')
-    return redirect(request.referrer)
+    images = os.listdir(config.PIC_BASE)
+    return render_template('index_images.html', images=images)
 
 @bp.route('/img/<string:filename>/', methods=['GET'])
 def view_image(filename):

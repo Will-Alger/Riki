@@ -46,7 +46,7 @@ class UserDaoManager(object):
   
   def get_user(self, email):
     self.cur.execute(
-      "SELECT email FROM users WHERE email = (?)", ((email,))
+      "SELECT id FROM users WHERE email = (?)", ((email,))
     )
     return self.cur.fetchone()
 
