@@ -8,7 +8,7 @@ from io import open
 
 import os
 import re
-
+from flask import flash
 from flask import abort
 from flask import url_for
 from flask import send_file
@@ -445,17 +445,45 @@ class Wiki(object):
                 tagged.append(page)
         return sorted(tagged, key=lambda x: x.title.lower())
 
+
+
+
     def search(self, term, ignore_case=True, attrs=['title', 'tags', 'body']):
+        from wiki.web.pageDAO import PageDaoManager
+        dao = PageDaoManager()
         pages = self.index()
-        regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
-        matched = []
-        for page in pages:
-            for attr in attrs:
-                if regex.search(getattr(page, attr)):
-                    matched.append(page)
-                    break
-        return matched
-    
+
+        # Tokenize the search term(s)
+        search_terms = word_tokenize(term.lower() if ignore_case else term)
+
+        # Find the matching doc_ids from the page_index table
+        query = f"""
+            SELECT doc_id, SUM(frequency) as total_frequency
+            FROM page_index
+            WHERE word IN ({', '.join('?' for _ in search_terms)})
+            GROUP BY doc_id
+            ORDER BY total_frequency DESC
+        """
+        results = dao.cur.execute(query, search_terms).fetchall()
+        flash(f"Table results: {results}")
+
+        # Create a dictionary of page_id to frequency
+        page_freq_map = {}
+        for row in results:
+            doc_id = row[0]
+            frequency = row[1]
+            page_freq_map[doc_id] = frequency
+
+        # Filter the matching pages based on their doc_ids
+        matching_pages = [page for page in pages if page.id in page_freq_map]
+
+        # Sort the matching pages by frequency
+        sorted_matching_pages = sorted(matching_pages,
+                                    key=lambda page: page_freq_map[page.id],
+                                    reverse=True)
+
+        return sorted_matching_pages
+        
     # For image uploading
     def allowed_file(self, filename): 
         ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
