@@ -10,7 +10,7 @@ def get_db():
             current_app.config['DATABASE'],
             detect_types=sqlite3.PARSE_DECLTYPES
         )
-        # g.db.row_factory = sqlite3.Row
+        g.db.row_factory = sqlite3.Row
     return g.db
 
 def close_db(e=None):
@@ -24,3 +24,13 @@ def init_db():
     with open('wiki/web/schema.sql') as f:
         db.executescript(f.read())
  
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+    """Clear the existing data and create new tables."""
+    init_db()
+    click.echo('Initialized the database.') 
+
+def init_app(app):
+    app.teardown_appcontext(close_db)
+    app.cli.add_command(init_db_command)

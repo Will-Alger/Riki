@@ -145,7 +145,6 @@ def move(url):
 
         # Update the page_index tokens to point to the new page id
         pageDaoManager.update_page_index_id(new_page_id, old_page_id)
-        pageDaoManager.close_db()
 
         # Redirect the user to the new URL
         return redirect(url_for('wiki.display', url=newurl))
