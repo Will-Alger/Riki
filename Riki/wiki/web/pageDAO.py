@@ -1,7 +1,5 @@
 import sqlite3
-from wiki.web.db import get_db
-
-# from flask import current_app, g
+from wiki.web.db import *
 
 class PageDaoManager(object):
     def __init__(self):

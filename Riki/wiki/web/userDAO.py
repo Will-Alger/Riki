@@ -1,5 +1,6 @@
 import sqlite3
 import uuid
+from wiki.web.db import *
 
 class UserDao(object):
   def __init__(self, name, email, password):
@@ -24,9 +25,8 @@ class UserDao(object):
 
 class UserDaoManager(object):
   def __init__(self, path):
-    self.connection = sqlite3.connect(path)
+    self.connection = get_db()
     self.cur = self.connection.cursor()
-    self.table_name = "users"
 
   def create_user(self, user):
     self.cur.execute(

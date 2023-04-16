@@ -143,6 +143,30 @@ class TestPage:
     def test_missing_tags(self):
         assert self.page.tags == ""
 
+    def test_tokenize_and_count(self):
+        content = "This is a test page with some test content. We are testing the tokenize_and_count method."
+
+        # Save the content to the temporary file
+        with open(self.path, 'w', encoding="utf-8") as f:
+            f.write(content)
+
+        # Load the content into the page object and render it
+        self.page.load()
+        self.page.render()
+
+        expected_result = {
+            "test": 3,
+            "page": 1,
+            "content": 1,
+            "testing": 1,
+            "tokenize_and_count": 1,
+            "method": 1
+        }
+
+        token_count = self.page.tokenize_and_count()
+
+        assert token_count == expected_result
+
 
 class TestWiki:
     def setup_method(self):
