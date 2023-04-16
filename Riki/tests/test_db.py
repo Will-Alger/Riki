@@ -27,10 +27,11 @@ def client():
 
 @pytest.fixture
 def user_dao_manager(client):
-    db_path = app.config['DATABASE']
-    dao_manager = UserDaoManager(db_path)
-    yield dao_manager
-    dao_manager.close_db()
+    with app.app_context():
+        db_path = app.config['DATABASE']
+        dao_manager = UserDaoManager(db_path)
+        yield dao_manager
+        dao_manager.close_db()
 
 def test_db_file_created(client):
     db_path = app.config['DATABASE']
