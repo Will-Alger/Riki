@@ -163,7 +163,6 @@ def delete(url):
     
     pageDaoManager = PageDaoManager()
     pageDaoManager.delete(page)
-    pageDaoManager.close_db()
 
     flash('Page "%s" was deleted.' % page.title, 'success')
 
