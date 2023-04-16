@@ -144,29 +144,16 @@ class TestPage:
         assert self.page.tags == ""
 
     def test_tokenize_and_count(self):
-        content = "This is a test page with some test content. We are testing the tokenize_and_count method."
-
-        # Save the content to the temporary file
-        with open(self.path, 'w', encoding="utf-8") as f:
-            f.write(content)
-
-        # Load the content into the page object and render it
-        self.page.load()
-        self.page.render()
-
+        self.page.title = 'sample title'
+        self.page._html = 'this is very the it that some test text text'
         expected_result = {
-            "test": 3,
-            "page": 1,
-            "content": 1,
-            "testing": 1,
-            "tokenize_and_count": 1,
-            "method": 1
+            'sample': 1,
+            'title': 1,
+            'test': 1,
+            'text': 2,
         }
-
         token_count = self.page.tokenize_and_count()
-
         assert token_count == expected_result
-
 
 class TestWiki:
     def setup_method(self):
