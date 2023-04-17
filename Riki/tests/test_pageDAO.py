@@ -1,6 +1,7 @@
 from Riki import app
-import wiki.web.init_db
-from wiki.web.init_db import init_db
+
+# import wiki.web.init_db
+# from wiki.web.init_db import init_db
 import os
 import tempfile
 import unittest
@@ -32,7 +33,7 @@ def client():
 
 
 @pytest.fixture
-def page_dao_manager(client):
+def dao(client):
     with app.app_context():
         dao_manager = PageDaoManager()
     yield dao_manager
@@ -43,109 +44,95 @@ class MockPage:
         self.id = id
 
 
-def test_page_delete(client, page_dao_manager):
-    page = MockPage("testid")
-    page_dao_manager.cur.execute(
-        "INSERT INTO page_index (word, doc_id, frequency) VALUES (?, ?, ?)",
-        ("word", "testid", 5),
-    )
-    page_dao_manager.delete(page)
-    result = page_dao_manager.cur.execute(
-        "SELECT * FROM page_index WHERE doc_id=?", (page.id,)
-    ).fetchone()
-    assert result is None
-
-
-def test_update_page_index_id(client, page_dao_manager):
+def test_update_page_index_id(client, dao):
+    # Create two page objects with distinct ids, one of which will be updated to a new id
     old_id = "old_id"
     new_id = "new_id"
+    old_page_id = MockPage("old_id")
+    new_page_id = MockPage("new_id")
 
-    # Insert multiple sample rows with the old_id
-    sample_rows = [("word1", old_id, 5), ("word2", old_id, 3), ("word3", old_id, 2)]
-    page_dao_manager.cur.executemany(
-        "INSERT INTO page_index (word, doc_id, frequency) VALUES (?, ?, ?)", sample_rows
-    )
+    # Define a sample page index dictionary
+    page_index = {"word1": 3, "word2": 2, "word3": 1}
 
-    # Call the update_page_index_id method to update the doc_id
-    page_dao_manager.update_page_index_id(new_id, old_id)
+    # Add the sample page index to the database for the old page id
+    dao.add_or_update_tokens(old_page_id, page_index)
 
-    # Query the table to check if all the old_id values are updated to the new_id
-    updated_results = page_dao_manager.cur.execute(
-        "SELECT * FROM page_index WHERE doc_id=?", (new_id,)
-    ).fetchall()
+    # Call the method being tested to update the page id
+    dao.update_page_index_id(new_id, old_id)
 
-    assert len(updated_results) == len(sample_rows)
+    # Get the tokens associated with the old page id (which should now be empty)
+    result1 = dao.get_tokens(old_page_id)
+    assert len(result1) == 0
 
-    for result, sample_row in zip(updated_results, sample_rows):
-        assert result["doc_id"] == new_id
-        assert result["word"] == sample_row[0]
-        assert result["frequency"] == sample_row[2]
-
-    # Check if the old_id is no longer in the table
-    with app.app_context():
-        result_old = page_dao_manager.cur.execute(
-            "SELECT * FROM page_index WHERE doc_id=?", (old_id,)
-        ).fetchall()
-
-    assert len(result_old) == 0
+    # Get the tokens associated with the new page id (which should contain the original tokens)
+    result2 = dao.get_tokens(new_page_id)
+    assert len(result2) == 3
+    assert result2 == page_index
 
 
-def test_delete_old_tokens(client, page_dao_manager):
+def test_delete_old_tokens(client, dao):
+    # Define old and new page index and expected index
     old_page_index = {"word1": 3, "word2": 2, "word3": 1}
     new_page_index = {"word1": 4, "word4": 5}
+    expected_index = {"word1": 3}
+
+    # Create a mock page object with ID 'testid'
     page = MockPage("testid")
 
     # Insert old_page_index values into the database
-    for word, frequency in old_page_index.items():
-        page_dao_manager.cur.execute(
-            "INSERT INTO page_index (word, doc_id, frequency) VALUES (?, ?, ?)",
-            (word, page.id, frequency),
-        )
+    dao.add_or_update_tokens(page, old_page_index)
 
     # Call delete_old_tokens with new_page_index
-    page_dao_manager.delete_old_tokens(page, new_page_index)
+    dao.delete_old_tokens(page, new_page_index)
 
-    # Insert new_page_index values into the database
-    for word, frequency in new_page_index.items():
-        page_dao_manager.cur.execute(
-            "INSERT OR REPLACE INTO page_index (word, doc_id, frequency) VALUES (?, ?, ?)",
-            (word, page.id, frequency),
-        )
+    # Get current tokens from the database
+    result = dao.get_tokens(page)
 
-    # Query the database for the remaining tokens and convert to a dictionary
-    remaining_tokens_dict = {
-        word: frequency
-        for word, frequency in page_dao_manager.cur.execute(
-            "SELECT word, frequency FROM page_index WHERE doc_id=?", (page.id,)
-        ).fetchall()
-    }
-
-    # Check if the remaining tokens match the new_page_index
-    assert remaining_tokens_dict == new_page_index
+    # Check that the returned tokens match the expected ones
+    assert result == expected_index
 
 
-def test_add_or_update_tokens(client, page_dao_manager):
-    initial_page_index = {"word1": 3, "word2": 2}
-    updated_page_index = {"word1": 4, "word2": 1, "word3": 5}
+def test_add_or_update_tokens(client, dao):
+    init_tokens = {"word1": 3, "word2": 2}
+    updated_tokens = {"word1": 4, "word2": 1, "word3": 5}
     page = MockPage("testid")
 
-    # Insert initial_page_index values into the database
-    for word, frequency in initial_page_index.items():
-        page_dao_manager.cur.execute(
-            "INSERT INTO page_index (word, doc_id, frequency) VALUES (?, ?, ?)",
-            (word, page.id, frequency),
-        )
+    # Insert intial tokens into the database
+    dao.add_or_update_tokens(page, init_tokens)
 
-    # Call add_or_update_tokens with updated_page_index
-    page_dao_manager.add_or_update_tokens(page, updated_page_index)
+    # Insert the same tokens with different values
+    dao.add_or_update_tokens(page, updated_tokens)
 
-    # Query the database for the updated tokens and convert to a dictionary
-    updated_tokens_dict = {
-        word: frequency
-        for word, frequency in page_dao_manager.cur.execute(
-            "SELECT word, frequency FROM page_index WHERE doc_id=?", (page.id,)
-        ).fetchall()
-    }
+    updated_tokens_dict = dao.get_tokens(page)
 
     # Check if the updated tokens match the updated_page_index
-    assert updated_tokens_dict == updated_page_index
+    assert updated_tokens_dict == updated_tokens
+
+
+def test_get_tokens(client, dao):
+    init_tokens = {"word1": 3, "word2": 2}
+    page = MockPage("testid")
+
+    # Insert intial tokens into the database
+    dao.add_or_update_tokens(page, init_tokens)
+    tokens = dao.get_tokens(page)
+
+    assert tokens == init_tokens
+
+
+def test_delete(client, dao):
+    init_tokens = {"word1": 3, "word2": 2}
+    page = MockPage("testid")
+
+    # Insert intial tokens into the database
+    dao.add_or_update_tokens(page, init_tokens)
+
+    # Delete all the rows with the page.id
+    dao.delete(page)
+
+    # get all the tokens from the database with the page.id
+
+    tokens = dao.get_tokens(page)
+
+    # assert tokens is empty
+    assert len(tokens) == 0
