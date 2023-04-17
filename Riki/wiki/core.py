@@ -279,24 +279,68 @@ class Page(object):
         self["tags"] = value
 
     def get_page_text(self):
+        """
+        Extracts text content from the HTML body using Beautiful Soup, and concatenates it with page title.
+
+        Returns:
+            str: A string containing the body text and title of the page separated by a space.
+        """
         # Extract the text content from the HTML body using Beautiful Soup
         body_text = BeautifulSoup(self.html, "html.parser").get_text()
+
         # Concatenate the body text and title into a single string with a space in between
         return body_text + " " + self.title
 
     def tokenize(self, page_text):
-        # Tokenize the lower case page text
-        return word_tokenize(page_text.lower())
+        """
+        Tokenizes the given text using the word_tokenize function from the nltk library.
+
+        Args:
+            page_text (str): The text to be tokenized.
+
+        Returns:
+            list: A list of tokens extracted from the text.
+        """
+        return word_tokenize(page_text)
 
     def remove_stopwords(self, tokens):
+        """
+        Removes stopwords from a list of tokens.
+
+        Args:
+            tokens (list): A list of tokens.
+
+        Returns:
+            A list of tokens with stopwords removed.
+
+        """
         # Get a list of English stopwords
         english_stopwords = stopwords.words("english")
         return [t for t in tokens if t not in english_stopwords]
 
     def token_frequency(self, tokens_wo_stopwords):
+        """
+        Calculates the frequency of each token in a list of tokens.
+
+        Args:
+            tokens_wo_stopwords (list): A list of tokens with stopwords removed.
+
+        Returns:
+            dict: A dictionary containing the frequency of each token.
+        """
         return dict(Counter(tokens_wo_stopwords))
 
     def tokenize_and_count(self):
+        """
+        Tokenizes the page text, removes stopwords and returns a dictionary containing
+        the count of each token.
+
+        Args:
+            None
+
+        Returns:
+            token_freq (dict): A dictionary containing the count of each token.
+        """
         # Get page text without markdown
         page_text = self.get_page_text()
 
@@ -306,7 +350,7 @@ class Page(object):
         # Remove stopwords from tokens
         tokens_wo_stopwords = self.remove_stopwords(tokens)
 
-        # translate remaining tokens into dictionary of pairs [token -> token count]
+        # Translate remaining tokens into dictionary of pairs [token -> token count]
         token_freq = self.token_frequency(tokens_wo_stopwords)
 
         # Return the dictionary of word frequencies
