@@ -16,7 +16,6 @@
 				<tr>
 					<td><a href="{{ url_for('wiki.display', url=page.url) }}">{{ page.title }}</a></td>
 					<td><a href="{{ url_for('wiki.display', url=page.url) }}">{{ page.url }}</a></td>
-					<td>{{ page.id }}</td>
 				</tr>
 			{% endfor %}
 		</tbody>
