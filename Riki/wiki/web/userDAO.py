@@ -1,25 +1,33 @@
 import sqlite3
-import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class UserDao(object):
-  def __init__(self, name, email, password):
-    self.id = str(uuid.uuid4())
-    self.name = name
+  def __init__(self, first_name, last_name, email, password):
+    self.first_name = first_name
+    self.last_name = last_name
     self.email = email
     self.password = password
     self.authenticated = False
+    self.manager = UserDaoManager('/var/db/riki.db')
+    self.active = True
+  
+  def set_authenticated(self, value):
+      self.authenticated = value
 
   def is_authenticated(self):
     return self.authenticated
 
   def is_active(self):
-    return True
+    return self.active
 
   def is_anonymous(self):
     return False
   
   def get_id(self):
-    return self.name
+    return self.email
+  
+  def check_password(self, password):
+    return check_password_hash(self.password, password)
 
 
 class UserDaoManager(object):
@@ -29,9 +37,10 @@ class UserDaoManager(object):
     self.table_name = "users"
 
   def create_user(self, user):
+    hashedPassword = generate_password_hash(user.password, method='sha256')
     self.cur.execute(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      (user.name, user.email, user.password)
+      "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)",
+      (user.first_name, user.last_name, user.email, hashedPassword)
     )
     self.connection.commit()
 
@@ -46,9 +55,28 @@ class UserDaoManager(object):
   
   def get_user(self, email):
     self.cur.execute(
-      "SELECT email FROM users WHERE email = (?)", ((email,))
+      "SELECT * FROM users WHERE email = (?)", ((email,))
     )
-    return self.cur.fetchone()
+    user = self.cur.fetchone()
+    if user is None:
+      return None
+    else:
+      return UserDao(user[1], user[2], user[3], user[4])
+  
+  def delete_all_users(self):
+    self.cur.execute("DELETE FROM users")
+    self.connection.commit()
+  
+  def delete_user(self, email):
+    user = self.get_user(email)
+    if user is not None:
+      self.cur.execute(
+        "DELETE FROM users WHERE email = (?)", ((email,))
+      )
+      self.connection.commit()
+      return True
+    else:
+      return False
 
   def close_db(self):
     self.connection.close()

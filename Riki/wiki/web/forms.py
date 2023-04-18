@@ -15,8 +15,8 @@ from wiki.core import clean_url
 from wiki.web import current_wiki
 from wiki.web import current_users
 from flask import flash
-from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class URLForm(Form):
@@ -45,24 +45,30 @@ class EditorForm(Form):
 
 
 class LoginForm(Form):
-    name = TextField('', [InputRequired()])
+    email = StringField(label='E-mail', validators=[
+        validators.Length(min=5, max=35),
+        validators.Email()
+    ])
     password = PasswordField('', [InputRequired()])
 
-    def validate_name(form, field):
+    def validate_email(form, field):
         user = current_users.get_user(field.data)
-        if not user:
+        if user is None:
             raise ValidationError('This username does not exist.')
 
     def validate_password(form, field):
-        user = current_users.get_user(form.name.data)
-        if not user:
-            return
-        if not user.check_password(field.data):
-            raise ValidationError('Username and password do not match.')
+        user = current_users.get_user(form.email.data)
+        if user is not None:
+            password_authenticated = user.check_password(field.data)
+
+            if not password_authenticated:
+                raise ValidationError('Username and password do not match.')
 
 
 class SignupForm(Form):
-    name = TextField('', [InputRequired()])
+    first_name = TextField('', [InputRequired()])
+    last_name = TextField('', [InputRequired()])
+
     email = StringField(label='E-mail', validators=[
         validators.Length(min=5, max=35),
         validators.Email()
@@ -70,20 +76,14 @@ class SignupForm(Form):
     password = PasswordField('', validators=[
         validators.Length(min=2, message='Too short'),
         InputRequired(),
-        validators.EqualTo('confirm_password', message='Passwords must match'),
     ])
-    confirm_password = PasswordField('', [InputRequired()])
+    confirm_password = PasswordField('', validators=[
+        InputRequired(),
+        validators.EqualTo('password', message='Passwords must match'),
+    ])
 
-    def validate_email(form, email):
-        userDaoManager = UserDaoManager('/var/db/riki.db')
-        valemail =  userDaoManager.get_user(email.data)
+    def validate_email(form, field):
+        valemail =  current_users.get_user(field.data)
         flash(f'val email -> {valemail}')
         if valemail is not None:
             raise ValidationError('This Email ID is already registered. Please login')
-
-    def validate_password(form, field):
-        user = current_users.get_user(form.name.data)
-        if not user:
-            return
-        if not user.check_password(field.data):
-            raise ValidationError('Username and password do not match.')

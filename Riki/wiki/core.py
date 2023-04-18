@@ -335,11 +335,12 @@ class Wiki(object):
         for page in self.index():
             value = getattr(page, key)
             pre = pages.get(value, [])
-            pages[value] = pre.append(page)
+            pre.append(page)
+            pages[value] = pre
         return pages
 
     def get_by_title(self, title):
-        pages = self.index(attr='title')
+        pages = self.index_by(key='title')
         return pages.get(title)
 
     def get_tags(self):

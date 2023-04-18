@@ -5,9 +5,8 @@ from flask import Flask
 from flask import g
 from flask_login import LoginManager
 from werkzeug.local import LocalProxy
-
 from wiki.core import Wiki
-from wiki.web.user import UserManager
+from wiki.web.userDAO import UserDaoManager
 
 class WikiError(Exception):
     pass
@@ -23,7 +22,7 @@ current_wiki = LocalProxy(get_wiki)
 def get_users():
     users = getattr(g, '_users', None)
     if users is None:
-        users = g._users = UserManager(current_app.config['USER_DIR'])
+        users = g._users = UserDaoManager('/var/db/riki.db')
     return users
 
 current_users = LocalProxy(get_users)
@@ -53,5 +52,10 @@ loginmanager = LoginManager()
 loginmanager.login_view = 'wiki.user_login'
 
 @loginmanager.user_loader
-def load_user(name):
-    return current_users.get_user(name)
+def load_user(user_email):
+
+    userdata = current_users.get_user(user_email)
+    if userdata is None:
+        return None
+    else:
+        return userdata

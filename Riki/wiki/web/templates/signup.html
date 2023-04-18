@@ -6,10 +6,13 @@
 
 <form class="form form-inline" method="POST">
 	{{ form.hidden_tag() }}
-	{{ form.name(placeholder='Username') }}<br><br>
+	{{ form.first_name(placeholder='First Name') }}<br><br>
+	{{ form.last_name(placeholder='Last Name') }}<br><br>
 	{{ form.password(placeholder='Password') }}<br>
 	{{ form.confirm_password(placeholder='Confirm Password') }}<br><br>
 	{{ form.email(placeholder='Email') }}<br><br>
+
+	{% for error in form.password.errors %} <span>{{ error }}</span> {% endfor %}
 	<input type="submit" class="btn btn-primary" value="Sign up">
 </form>
 

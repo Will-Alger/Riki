@@ -135,9 +135,10 @@ def search():
 def user_login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = current_users.get_user(form.name.data)
+        user = current_users.get_user(form.email.data)
         login_user(user)
-        user.set('authenticated', True)
+        user.set_authenticated(True)
+        
         flash('Login successful.', 'success')
         return redirect(request.args.get("next") or url_for('wiki.index'))
     return render_template('login.html', form=form)
@@ -146,7 +147,7 @@ def user_login():
 @bp.route('/user/logout/')
 @login_required
 def user_logout():
-    current_user.set('authenticated', False)
+    current_user.set_authenticated(False)
     logout_user()
     flash('Logout successful.', 'success')
     return redirect(url_for('wiki.index'))
@@ -165,20 +166,20 @@ def user_create():
     userDaoManager = UserDaoManager('/var/db/riki.db')
 
     if request.method == 'POST' and form.validate_on_submit():
-        name = form.name.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
         email = form.email.data
         password = form.password.data
-        confirm_password = form.confirm_password.data
 
-        user = UserDao(name, email, password)
+        user = UserDao(first_name, last_name, email, password)
         userDaoManager.create_user(user)
         users = userDaoManager.get_users()
 
-        for user in users:
-            flash(f'{user[0]} {user[1]} {user[2]} {user[3]}')
-        # user = current_users.get_user(form.name.data)
-        # login_user(user)
-        # user.set('authenticated', True)
+        for item in users:
+            flash(f'{item[0]} {item[1]} {item[2]} {item[3]}')
+
+        login_user(user)
+        user.set_authenticated(True)
         flash('Sign up successful.', 'success')
 
         userDaoManager.close_db()
@@ -186,7 +187,10 @@ def user_create():
         return redirect(request.args.get("next") or url_for('wiki.index'))
     return render_template('signup.html', form=form)
 
-
+@bp.route('/user/profile/', methods=['GET', 'POST'])
+@login_required
+def user_profile():
+    return render_template('profile.html', user=current_user)
 
 
 @bp.route('/user/<int:user_id>/')
