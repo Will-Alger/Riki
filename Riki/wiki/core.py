@@ -20,6 +20,9 @@ import nltk
 
 nltk.download("stopwords")
 nltk.download("punkt")
+
+nltk.download("stopwords")
+nltk.download("punkt")
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
@@ -286,6 +289,7 @@ class Page(object):
         """
         # Extract the text content from the HTML body using Beautiful Soup
         body_text = BeautifulSoup(self.html, "html.parser").get_text()
+
         # Concatenate the body text and title into a single string with a space in between
         return body_text + " " + self.title
 
@@ -386,8 +390,6 @@ class Wiki(object):
         return Page(path, url, new=True)
 
     def move(self, url, newurl):
-        source = os.path.join(self.root, url) + ".md"
-        target = os.path.join(self.root, newurl) + ".md"
         source = os.path.join(self.root, url) + ".md"
         target = os.path.join(self.root, newurl) + ".md"
         # normalize root path (just in case somebody defined it absolute,
@@ -518,12 +520,6 @@ class Wiki(object):
         return matching_pages
 
     # For image uploading
-    def allowed_file(self, filename):
-        ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
-        return (
-            "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-        )
-
     def allowed_file(self, filename):
         ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
         return (

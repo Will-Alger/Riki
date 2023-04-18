@@ -7,6 +7,7 @@ from wiki.core import Processor, Page, Wiki
 from wiki.core import Processor, Page, Wiki
 import config
 
+
 class TestProcessor:
     def test_constructor(self):
         # Complete setup and execution is in this fixture
@@ -27,7 +28,7 @@ class TestProcessor:
         sample.process_markdown()
 
         assert sample.html == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
-        
+
     def test_split_raw(self):
         sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
 
@@ -37,7 +38,6 @@ class TestProcessor:
 
         assert sample.meta_raw == "meta:page"
         assert sample.markdown == "# Sample Title\nSome sample paragraph text"
-    
 
     # FAILING TEST
     # codebase gives KeyError when running this test
@@ -49,7 +49,7 @@ class TestProcessor:
         sample.split_raw()
         sample.process_meta()
 
-        test = OrderedDict([('meta', 'page')])
+        test = OrderedDict([("meta", "page")])
         assert sample.meta == test
 
     # Above test fails and is required to run below tests.
@@ -61,17 +61,20 @@ class TestProcessor:
         sample.split_raw()
         sample.process_meta()
         sample.process_post()
-        assert sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
+        assert (
+            sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
+        )
 
     def test_process(self):
         sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
-        
-        sample.process()
-        
-        assert sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
-        assert sample.markdown == "# Sample Title\nSome sample paragraph text"
-        assert sample.meta == OrderedDict([('meta', 'page')])
 
+        sample.process()
+
+        assert (
+            sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
+        )
+        assert sample.markdown == "# Sample Title\nSome sample paragraph text"
+        assert sample.meta == OrderedDict([("meta", "page")])
 
 
 class TestPage:
@@ -88,15 +91,15 @@ class TestPage:
 
     def test_load(self):
         content = "Test content"
-        with open(self.path, 'w', encoding="utf-8") as f:
+        with open(self.path, "w", encoding="utf-8") as f:
             f.write(content)
         # Call load() to read the content of the file
         self.page.load()
         assert self.page.content == content
 
     def test_save_with_existing_directory(self):
-        self.page['title'] = 'Test'
-        self.page.body = '<p>Test</p>'
+        self.page["title"] = "Test"
+        self.page.body = "<p>Test</p>"
         self.page.save()
         with open(self.path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -105,8 +108,8 @@ class TestPage:
 
     def test_save_with_no_existing_directory(self):
         p = Page("nonexistent.path", "url", new=True)
-        p['title'] = 'Test'
-        p.body = '<p>Test</p>'
+        p["title"] = "Test"
+        p.body = "<p>Test</p>"
         with pytest.raises(FileNotFoundError):
             p.save()
 
@@ -129,7 +132,7 @@ class TestPage:
         assert self.page.html == "<html></html>"
 
     def test_title(self):
-        self.page['title'] = "Test title"
+        self.page["title"] = "Test title"
         assert self.page.title == "Test title"
 
     def test_missing_title(self):
@@ -137,53 +140,54 @@ class TestPage:
         assert self.page.title == url
 
     def test_tags(self):
-        self.page.tags = 'test_tag1, test_tag2'
-        assert self.page.tags == 'test_tag1, test_tag2'
+        self.page.tags = "test_tag1, test_tag2"
+        assert self.page.tags == "test_tag1, test_tag2"
 
     def test_missing_tags(self):
         assert self.page.tags == ""
 
     def test_tokenize_and_count(self):
-        self.page.title = 'sample title'
-        self.page._html = 'this is very the it that some test text text'
+        self.page.title = "sample title"
+        self.page._html = "this is very the it that some test text text"
         expected_result = {
-            'sample': 1,
-            'title': 1,
-            'test': 1,
-            'text': 2,
+            "sample": 1,
+            "title": 1,
+            "test": 1,
+            "text": 2,
         }
         token_count = self.page.tokenize_and_count()
         assert token_count == expected_result
 
+
 class TestWiki:
     def setup_method(self):
-        self.tempdir = '/tmp'
+        self.tempdir = "/tmp"
         self.wiki = Wiki(self.tempdir)
 
     def test_constructor(self):
         assert self.wiki.root == self.tempdir
 
     def test_path(self):
-        url = 'page1'
-        expected_path = os.path.join(self.wiki.root, 'page1.md')
+        url = "page1"
+        expected_path = os.path.join(self.wiki.root, "page1.md")
         path = self.wiki.path(url)
         assert path == expected_path
 
     def test_exists(self):
-        url = 'page1'
+        url = "page1"
         assert not self.wiki.exists(url)
 
         path = self.wiki.path(url)
-        with open(path, 'w') as f:
-            f.write('# Page 1')
+        with open(path, "w") as f:
+            f.write("# Page 1")
 
         assert self.wiki.exists(url)
 
     def test_delete_existing_page(self):
-        url = 'existing-page'
+        url = "existing-page"
         wiki_path = self.wiki.path(url)
-        with open(wiki_path, 'w') as f:
-            f.write('# Existing Page')
+        with open(wiki_path, "w") as f:
+            f.write("# Existing Page")
 
         page = self.wiki.delete(url)
 
@@ -191,21 +195,21 @@ class TestWiki:
         assert not self.wiki.exists(wiki_path)
 
     def test_delete_nonexistent_page(self):
-        url = 'nonexistent-page'
+        url = "nonexistent-page"
         page = self.wiki.delete(url)
         assert page is False
 
     def test_allowed_file(self):
-        assert self.wiki.allowed_file('badfile') is False
-        assert self.wiki.allowed_file('goodfile.jpg')
+        assert self.wiki.allowed_file("badfile") is False
+        assert self.wiki.allowed_file("goodfile.jpg")
 
     def test_save_image(self):
-        file = Image.new("L", [128,128])
+        file = Image.new("L", [128, 128])
         file.filename = "filename.jpg"
         self.wiki.save_image(file)
         full_path = os.path.join(config.PIC_BASE, file.filename)
         assert os.path.exists(full_path)
         with Image.open(full_path) as im:
-            assert im.format == 'JPEG'
+            assert im.format == "JPEG"
             assert im.size == (128, 128)
-            assert im.mode == 'L'
+            assert im.mode == "L"
