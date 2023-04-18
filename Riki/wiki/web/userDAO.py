@@ -1,5 +1,7 @@
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+from wiki.web.db import *
+
 
 class UserDao(object):
   def __init__(self, first_name, last_name, email, password):
@@ -31,10 +33,9 @@ class UserDao(object):
 
 
 class UserDaoManager(object):
-  def __init__(self, path):
-    self.connection = sqlite3.connect(path)
-    self.cur = self.connection.cursor()
-    self.table_name = "users"
+    def __init__(self, path):
+        self.connection = get_db()
+        self.cur = self.connection.cursor()
 
   def create_user(self, user):
     hashedPassword = generate_password_hash(user.password, method='sha256')

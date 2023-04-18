@@ -6,3 +6,10 @@ CREATE TABLE users (
     email TEXT NOT NULL,
     password TEXT NOT NULL
 );
+
+CREATE TABLE page_index (
+    word TEXT NOT NULL,
+    doc_id TEXT NOT NULL,
+    frequency INTEGER NOT NULL,
+    PRIMARY KEY (word, doc_id)
+);

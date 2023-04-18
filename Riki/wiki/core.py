@@ -3,65 +3,79 @@
     ~~~~~~~~~
 """
 from collections import OrderedDict
+from PIL import Image
 from io import open
+
 import os
 import re
 
 from flask import abort
 from flask import url_for
+from flask import send_file
+import markdown
+import config
+import hashlib
+
+import nltk
+
+nltk.download("stopwords")
+nltk.download("punkt")
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from collections import Counter
+
+from bs4 import BeautifulSoup
 import markdown
 
 
 def clean_url(url):
     """
-        Cleans the url and corrects various errors. Removes multiple
-        spaces and all leading and trailing spaces. Changes spaces
-        to underscores and makes all characters lowercase. Also
-        takes care of Windows style folders use.
+    Cleans the url and corrects various errors. Removes multiple
+    spaces and all leading and trailing spaces. Changes spaces
+    to underscores and makes all characters lowercase. Also
+    takes care of Windows style folders use.
 
-        :param str url: the url to clean
+    :param str url: the url to clean
 
 
-        :returns: the cleaned url
-        :rtype: str
+    :returns: the cleaned url
+    :rtype: str
     """
-    url = re.sub('[ ]{2,}', ' ', url).strip()
-    url = url.lower().replace(' ', '_')
-    url = url.replace('\\\\', '/').replace('\\', '/')
+    url = re.sub("[ ]{2,}", " ", url).strip()
+    url = url.lower().replace(" ", "_")
+    url = url.replace("\\\\", "/").replace("\\", "/")
     return url
 
 
 def wikilink(text, url_formatter=None):
     """
-        Processes Wikilink syntax "[[Link]]" within the html body.
-        This is intended to be run after content has been processed
-        by markdown and is already HTML.
+    Processes Wikilink syntax "[[Link]]" within the html body.
+    This is intended to be run after content has been processed
+    by markdown and is already HTML.
 
-        :param str text: the html to highlight wiki links in.
-        :param function url_formatter: which URL formatter to use,
-            will by default use the flask url formatter
+    :param str text: the html to highlight wiki links in.
+    :param function url_formatter: which URL formatter to use,
+        will by default use the flask url formatter
 
-        Syntax:
-            This accepts Wikilink syntax in the form of [[WikiLink]] or
-            [[url/location|LinkName]]. Everything is referenced from the
-            base location "/", therefore sub-pages need to use the
-            [[page/subpage|Subpage]].
+    Syntax:
+        This accepts Wikilink syntax in the form of [[WikiLink]] or
+        [[url/location|LinkName]]. Everything is referenced from the
+        base location "/", therefore sub-pages need to use the
+        [[page/subpage|Subpage]].
 
-        :returns: the processed html
-        :rtype: str
+    :returns: the processed html
+    :rtype: str
     """
     if url_formatter is None:
         url_formatter = url_for
     link_regex = re.compile(
-        r"((?<!\<code\>)\[\[([^<].+?) \s*([|] \s* (.+?) \s*)?]])",
-        re.X | re.U
+        r"((?<!\<code\>)\[\[([^<].+?) \s*([|] \s* (.+?) \s*)?]])", re.X | re.U
     )
     for i in link_regex.findall(text):
         title = [i[-1] if i[-1] else i[1]][0]
         url = clean_url(i[1])
         html_url = "<a href='{0}'>{1}</a>".format(
-            url_formatter('wiki.display', url=url),
-            title
+            url_formatter("wiki.display", url=url), title
         )
         text = re.sub(link_regex, html_url, text, count=1)
     return text
@@ -69,11 +83,11 @@ def wikilink(text, url_formatter=None):
 
 class Processor(object):
     """
-        The processor handles the processing of file content into
-        metadata and markdown and takes care of the rendering.
+    The processor handles the processing of file content into
+    metadata and markdown and takes care of the rendering.
 
-        It also offers some helper methods that can be used for various
-        cases.
+    It also offers some helper methods that can be used for various
+    cases.
     """
 
     preprocessors = []
@@ -81,16 +95,13 @@ class Processor(object):
 
     def __init__(self, text):
         """
-            Initialization of the processor.
+        Initialization of the processor.
 
-            :param str text: the text to process
+        :param str text: the text to process
         """
-        self.md = markdown.Markdown(extensions=[
-            'codehilite',
-            'fenced_code',
-            'meta',
-            'tables'
-        ])
+        self.md = markdown.Markdown(
+            extensions=["codehilite", "fenced_code", "meta", "tables"]
+        )
         self.input = text
         self.markdown = None
         self.meta_raw = None
@@ -102,7 +113,7 @@ class Processor(object):
 
     def process_pre(self):
         """
-            Content preprocessor.
+        Content preprocessor.
         """
         current = self.input
         for processor in self.preprocessors:
@@ -111,38 +122,36 @@ class Processor(object):
 
     def process_markdown(self):
         """
-            Convert to HTML.
+        Convert to HTML.
         """
         self.html = self.md.convert(self.pre)
 
-
     def split_raw(self):
         """
-            Split text into raw meta and content.
+        Split text into raw meta and content.
         """
-        self.meta_raw, self.markdown = self.pre.split('\n\n', 1)
+        self.meta_raw, self.markdown = self.pre.split("\n\n", 1)
 
     def process_meta(self):
         """
-            Get metadata.
+        Get metadata.
 
-            .. warning:: Can only be called after :meth:`html` was
-                called.
+        .. warning:: Can only be called after :meth:`html` was
+            called.
         """
         # the markdown meta plugin does not retain the order of the
         # entries, so we have to loop over the meta values a second
         # time to put them into a dictionary in the correct order
         self.meta = OrderedDict()
-        for line in self.meta_raw.split('\n'):
-            key = line.split(':', 1)[0]
+        for line in self.meta_raw.split("\n"):
+            key = line.split(":", 1)[0]
             # markdown metadata always returns a list of lines, we will
             # reverse that here
-            self.meta[key.lower()] = \
-                '\n'.join(self.md.Meta[key.lower()])
+            self.meta[key.lower()] = "\n".join(self.md.Meta[key.lower()])
 
     def process_post(self):
         """
-            Content postprocessor.
+        Content postprocessor.
         """
         current = self.html
         for processor in self.postprocessors:
@@ -151,9 +160,9 @@ class Processor(object):
 
     def process(self):
         """
-            Runs the full suite of processing on the given text, all
-            pre and post processing, markdown rendering and meta data
-            handling.
+        Runs the full suite of processing on the given text, all
+        pre and post processing, markdown rendering and meta data
+        handling.
         """
         self.process_pre()
         self.process_markdown()
@@ -166,76 +175,186 @@ class Processor(object):
 
 class Page(object):
     def __init__(self, path, url, new=False):
+        # Initialize instance variables with provided values
         self.path = path
         self.url = url
+        self.id = hashlib.sha256(self.url.encode("utf-8")).hexdigest()[:16]
+
+        # Create an empty ordered dictionary for storing metadata
         self._meta = OrderedDict()
+
+        # Load and render the page contents if this is not a new page
         if not new:
-            self.load()
-            self.render()
+            self.load()  # Load page contents from file at `path` into instance
+            self.render()  # Render page as HTML
 
     def __repr__(self):
         return "<Page: {}@{}>".format(self.url, self.path)
 
     def load(self):
-        with open(self.path, 'r', encoding='utf-8') as f:
+        # Open the file at `path` in read mode using UTF-8 encoding
+        with open(self.path, "r", encoding="utf-8") as f:
+            # Read the contents of the file and store them in the instance's `content` attribute
             self.content = f.read()
 
     def render(self):
+        # Create a `Processor` object to process the page content
         processor = Processor(self.content)
+
+        # Process the content and store the resulting HTML, body, and metadata in instance variables
         self._html, self.body, self._meta = processor.process()
 
     def save(self, update=True):
+        # Get the directory containing the page file
         folder = os.path.dirname(self.path)
+
+        # If the directory does not exist, create it
         if not os.path.exists(folder):
             os.makedirs(folder)
-        with open(self.path, 'w', encoding='utf-8') as f:
+
+        # Write metadata and page body to the page file
+        with open(self.path, "w", encoding="utf-8") as f:
+            # Write metadata to the file in the format `key: value`
             for key, value in list(self._meta.items()):
-                line = '%s: %s\n' % (key, value)
+                line = "%s: %s\n" % (key, value)
                 f.write(line)
-            f.write('\n')
-            f.write(self.body.replace('\r\n', '\n'))
+
+            # Write a newline character after the metadata
+            f.write("\n")
+
+            # Write the page body to the file, replacing Windows-style line endings with Unix-style line endings
+            f.write(self.body.replace("\r\n", "\n"))
+
+        # Reload and re-render the page if `update` is True
         if update:
-            self.load()
-            self.render()
+            self.load()  # Load updated content from file into instance
+            self.render()  # Render updated content as HTML and update instance variables
 
     @property
     def meta(self):
+        # Returns an ordered dictionary containing metadata for the page
         return self._meta
 
     def __getitem__(self, name):
+        # Returns the value associated with a given metadata key
         return self._meta[name]
 
     def __setitem__(self, name, value):
+        # Sets the value associated with a given metadata key
         self._meta[name] = value
 
     @property
     def html(self):
+        # Returns the HTML code for the page
         return self._html
 
     def __html__(self):
+        # Returns the HTML code for the page (used by certain frameworks and libraries)
         return self.html
 
     @property
     def title(self):
+        # Tries to get the "title" metadata field; if it doesn't exist, returns the page URL
         try:
-            return self['title']
+            return self["title"]
         except KeyError:
             return self.url
 
     @title.setter
     def title(self, value):
-        self['title'] = value
+        # Sets the "title" metadata field
+        self["title"] = value
 
     @property
     def tags(self):
+        # Tries to get the "tags" metadata field; if it doesn't exist, returns an empty string
         try:
-            return self['tags']
+            return self["tags"]
         except KeyError:
             return ""
 
     @tags.setter
     def tags(self, value):
-        self['tags'] = value
+        # Sets the "tags" metadata field
+        self["tags"] = value
+
+    def get_page_text(self):
+        """
+        Extracts text content from the HTML body using Beautiful Soup, and concatenates it with page title.
+
+        Returns:
+            str: A string containing the body text and title of the page separated by a space.
+        """
+        # Extract the text content from the HTML body using Beautiful Soup
+        body_text = BeautifulSoup(self.html, "html.parser").get_text()
+
+        # Concatenate the body text and title into a single string with a space in between
+        return body_text + " " + self.title
+
+    def tokenize(self, page_text):
+        """
+        Tokenizes the given text using the word_tokenize function from the nltk library.
+
+        Args:
+            page_text (str): The text to be tokenized.
+
+        Returns:
+            list: A list of tokens extracted from the text.
+        """
+        return word_tokenize(page_text)
+
+    def remove_stopwords(self, tokens):
+        """
+        Removes stopwords from a list of tokens.
+
+        Args:
+            tokens (list): A list of tokens.
+
+        Returns:
+            A list of tokens with stopwords removed.
+
+        """
+        # Get a list of English stopwords
+        english_stopwords = stopwords.words("english")
+        return [t for t in tokens if t not in english_stopwords]
+
+    def token_frequency(self, tokens_wo_stopwords):
+        """
+        Calculates the frequency of each token in a list of tokens.
+
+        Args:
+            tokens_wo_stopwords (list): A list of tokens with stopwords removed.
+
+        Returns:
+            dict: A dictionary containing the frequency of each token.
+        """
+        return dict(Counter(tokens_wo_stopwords))
+
+    def tokenize_and_count(self):
+        """
+        Tokenizes the page text, removes stopwords and returns a dictionary containing
+        the count of each token.
+
+        Args:
+            None
+
+        Returns:
+            token_freq (dict): A dictionary containing the count of each token.
+        """
+        # Get page text without markdown
+        page_text = self.get_page_text()
+
+        # Tokenize the page text
+        tokens = self.tokenize(page_text)
+
+        # Remove stopwords from tokens
+        tokens_wo_stopwords = self.remove_stopwords(tokens)
+
+        # Translate remaining tokens into dictionary of pairs [token -> token count]
+        token_freq = self.token_frequency(tokens_wo_stopwords)
+
+        # Return the dictionary of word frequencies
+        return token_freq
 
 
 class Wiki(object):
@@ -243,7 +362,7 @@ class Wiki(object):
         self.root = root
 
     def path(self, url):
-        return os.path.join(self.root, url + '.md')
+        return os.path.join(self.root, url + ".md")
 
     def exists(self, url):
         path = self.path(url)
@@ -251,7 +370,7 @@ class Wiki(object):
 
     def get(self, url):
         path = self.path(url)
-        #path = os.path.join(self.root, url + '.md')
+        # path = os.path.join(self.root, url + '.md')
         if self.exists(url):
             return Page(path, url)
         return None
@@ -269,8 +388,8 @@ class Wiki(object):
         return Page(path, url, new=True)
 
     def move(self, url, newurl):
-        source = os.path.join(self.root, url) + '.md'
-        target = os.path.join(self.root, newurl) + '.md'
+        source = os.path.join(self.root, url) + ".md"
+        target = os.path.join(self.root, newurl) + ".md"
         # normalize root path (just in case somebody defined it absolute,
         # having some '../' inside) to correctly compare it to the target
         root = os.path.normpath(self.root)
@@ -281,8 +400,8 @@ class Wiki(object):
         # us outside defined root directory
         if len(common) < len(root):
             raise RuntimeError(
-                'Possible write attempt outside content directory: '
-                '%s' % newurl)
+                "Possible write attempt outside content directory: " "%s" % newurl
+            )
         # create folder if it does not exists yet
         folder = os.path.dirname(target)
         if not os.path.exists(folder):
@@ -298,10 +417,10 @@ class Wiki(object):
 
     def index(self):
         """
-            Builds up a list of all the available pages.
+        Builds up a list of all the available pages.
 
-            :returns: a list of all the wiki pages
-            :rtype: list
+        :returns: a list of all the wiki pages
+        :rtype: list
         """
         # make sure we always have the absolute path for fixing the
         # walk path
@@ -309,10 +428,10 @@ class Wiki(object):
         root = os.path.abspath(self.root)
         for cur_dir, _, files in os.walk(root):
             # get the url of the current directory
-            cur_dir_url = cur_dir[len(root)+1:]
+            cur_dir_url = cur_dir[len(root) + 1 :]
             for cur_file in files:
                 path = os.path.join(cur_dir, cur_file)
-                if cur_file.endswith('.md'):
+                if cur_file.endswith(".md"):
                     url = clean_url(os.path.join(cur_dir_url, cur_file[:-3]))
                     page = Page(path, url)
                     pages.append(page)
@@ -320,16 +439,16 @@ class Wiki(object):
 
     def index_by(self, key):
         """
-            Get an index based on the given key.
+        Get an index based on the given key.
 
-            Will use the metadata value of the given key to group
-            the existing pages.
+        Will use the metadata value of the given key to group
+        the existing pages.
 
-            :param str key: the attribute to group the index on.
+        :param str key: the attribute to group the index on.
 
-            :returns: Will return a dictionary where each entry holds
-                a list of pages that share the given attribute.
-            :rtype: dict
+        :returns: Will return a dictionary where each entry holds
+            a list of pages that share the given attribute.
+        :rtype: dict
         """
         pages = {}
         for page in self.index():
@@ -340,17 +459,17 @@ class Wiki(object):
         return pages
 
     def get_by_title(self, title):
-        pages = self.index_by(key='title')
+        pages = self.index(attr="title")
         return pages.get(title)
 
     def get_tags(self):
         pages = self.index()
         tags = {}
         for page in pages:
-            pagetags = page.tags.split(',')
+            pagetags = page.tags.split(",")
             for tag in pagetags:
                 tag = tag.strip()
-                if tag == '':
+                if tag == "":
                     continue
                 elif tags.get(tag):
                     tags[tag].append(page)
@@ -366,7 +485,7 @@ class Wiki(object):
                 tagged.append(page)
         return sorted(tagged, key=lambda x: x.title.lower())
 
-    def search(self, term, ignore_case=True, attrs=['title', 'tags', 'body']):
+    def search(self, term, ignore_case=True, attrs=["title", "tags", "body"]):
         pages = self.index()
         regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
         matched = []
@@ -376,3 +495,14 @@ class Wiki(object):
                     matched.append(page)
                     break
         return matched
+
+    # For image uploading
+    def allowed_file(self, filename):
+        ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
+        return (
+            "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+        )
+
+    def save_image(self, image):
+        path = os.path.join(config.PIC_BASE, image.filename)
+        image.save(path)

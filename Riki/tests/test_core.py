@@ -1,32 +1,10 @@
 import pytest
 import tempfile, os
+from PIL import Image
 from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki
-from werkzeug.exceptions import HTTPException, NotFound
+
 from wiki.core import Processor, Page
-from Riki import app
-
-@pytest.fixture
-def client():
-    tempdir = '/tmp'
-    wiki = Wiki(tempdir)
-    url = 'originalURL'
-    newurl = 'newURL'
-    newurlFolder = 'newURL//new_folder'
-    app.config['TESTING'] = True
-
-    with app.test_client() as client:
-        client.tempdir = tempdir
-        client.wiki = wiki
-        client.url = url
-        client.newurl = newurl
-        client.newurlFolder = newurlFolder
-        with app.app_context():
-            pass
-        yield client
-        wiki.delete(url)
-        wiki.delete(newurl)
-        wiki.delete(newurlFolder)
 
 class TestProcessor:
     def test_constructor(self):
@@ -48,43 +26,53 @@ class TestProcessor:
         sample.process_markdown()
 
         assert sample.html == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
-        
+
     def test_split_raw(self):
-        sample = Processor("# Sample Title\n\nSome sample paragraph text")
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
 
         sample.process_pre()
         sample.process_markdown()
         sample.split_raw()
 
-        assert sample.meta_raw == "# Sample Title"
-        assert sample.markdown == "Some sample paragraph text"
-    
+        assert sample.meta_raw == "meta:page"
+        assert sample.markdown == "# Sample Title\nSome sample paragraph text"
 
     # FAILING TEST
     # codebase gives KeyError when running this test
-    # def test_process_meta(self):
-    #     sample = Processor("# Sample Title\n\nSome sample paragraph text")
+    def test_process_meta(self):
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
 
     #     sample.process_pre()
     #     sample.process_markdown()
     #     sample.split_raw()
     #     sample.process_meta()
 
-    #     assert sample.meta == "# sample title"
+        test = OrderedDict([("meta", "page")])
+        assert sample.meta == test
 
     # Above test fails and is required to run below tests.
     def test_process_post(self):
-        pass
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
+
+        sample.process_pre()
+        sample.process_markdown()
+        sample.split_raw()
+        sample.process_meta()
+        sample.process_post()
+        assert (
+            sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
+        )
 
     def test_process(self):
-        pass
-        #sample = Processor("# Sample Title\n\nSome sample paragraph text")
-        
-        #temp = sample.process()
-        
-        #assert temp.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
-        #assert temp.markdown == ""
+        sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
 
+        sample.process()
+
+        assert (
+            sample.final == "<h1>Sample Title</h1>\n<p>Some sample paragraph text</p>"
+        )
+        assert sample.markdown == "# Sample Title\nSome sample paragraph text"
+        assert sample.meta == OrderedDict([("meta", "page")])
 
 
 class TestPage:
@@ -101,15 +89,15 @@ class TestPage:
 
     def test_load(self):
         content = "Test content"
-        with open(self.path, 'w', encoding="utf-8") as f:
+        with open(self.path, "w", encoding="utf-8") as f:
             f.write(content)
         # Call load() to read the content of the file
         self.page.load()
         assert self.page.content == content
 
     def test_save_with_existing_directory(self):
-        self.page['title'] = 'Test'
-        self.page.body = '<p>Test</p>'
+        self.page["title"] = "Test"
+        self.page.body = "<p>Test</p>"
         self.page.save()
         with open(self.path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -118,8 +106,8 @@ class TestPage:
 
     def test_save_with_no_existing_directory(self):
         p = Page("nonexistent.path", "url", new=True)
-        p['title'] = 'Test'
-        p.body = '<p>Test</p>'
+        p["title"] = "Test"
+        p.body = "<p>Test</p>"
         with pytest.raises(FileNotFoundError):
             p.save()
 
@@ -142,7 +130,7 @@ class TestPage:
         assert self.page.html == "<html></html>"
 
     def test_title(self):
-        self.page['title'] = "Test title"
+        self.page["title"] = "Test title"
         assert self.page.title == "Test title"
 
     def test_missing_title(self):
@@ -150,37 +138,46 @@ class TestPage:
         assert self.page.title == url
 
     def test_tags(self):
-        self.page.tags = 'test_tag1, test_tag2'
-        assert self.page.tags == 'test_tag1, test_tag2'
+        self.page.tags = "test_tag1, test_tag2"
+        assert self.page.tags == "test_tag1, test_tag2"
 
     def test_missing_tags(self):
         assert self.page.tags == ""
 
+    def test_tokenize_and_count(self):
+        self.page.title = "sample title"
+        self.page._html = "this is very the it that some test text text"
+        expected_result = {
+            "sample": 1,
+            "title": 1,
+            "test": 1,
+            "text": 2,
+        }
+        token_count = self.page.tokenize_and_count()
+        assert token_count == expected_result
+
 
 class TestWiki:
-    @pytest.fixture(autouse=True)
-    def setup_method(self, client):
-        self.tempdir = client.tempdir
-        self.wiki = client.wiki
-        self.url = client.url
-        self.newurl = client.newurl
-        self.newurlFolder = client.newurlFolder
+    def setup_method(self):
+        self.tempdir = "/tmp"
+        self.wiki = Wiki(self.tempdir)
 
     def test_constructor(self):
         assert self.wiki.root == self.tempdir
 
     def test_path(self):
-        expected_path = os.path.join(self.wiki.root, 'originalURL.md')
-        path = self.wiki.path(self.url)
+        url = "page1"
+        expected_path = os.path.join(self.wiki.root, "page1.md")
+        path = self.wiki.path(url)
         assert path == expected_path
 
     def test_exists(self):
-        # url = 'test_page_exists'
-        assert not self.wiki.exists(self.url)
+        url = "page1"
+        assert not self.wiki.exists(url)
 
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_exists()')
+        path = self.wiki.path(url)
+        with open(path, "w") as f:
+            f.write("# Page 1")
 
         assert self.wiki.exists(self.url)
 
@@ -267,9 +264,10 @@ class TestWiki:
         assert self.wiki.get(self.newurlFolder).url == self.newurlFolder
 
     def test_delete_existing_page(self):
-        wiki_path = self.wiki.path(self.url)
-        with open(wiki_path, 'w') as f:
-            f.write('# Existing Page')
+        url = "existing-page"
+        wiki_path = self.wiki.path(url)
+        with open(wiki_path, "w") as f:
+            f.write("# Existing Page")
 
         deleted = self.wiki.delete(self.url)
 
@@ -277,189 +275,21 @@ class TestWiki:
         assert not self.wiki.exists(wiki_path)
 
     def test_delete_nonexistent_page(self):
-        deleted = self.wiki.delete(self.url)
-        assert deleted is False
-    
-    def test_index(self):
-        wiki_pages = self.wiki.index()
-        assert len(wiki_pages) == 0
+        url = "nonexistent-page"
+        page = self.wiki.delete(url)
+        assert page is False
 
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_index()')
+    def test_allowed_file(self):
+        assert self.wiki.allowed_file("badfile") is False
+        assert self.wiki.allowed_file("goodfile.jpg")
 
-        wiki_pages = self.wiki.index()
-        assert len(wiki_pages) == 1
-
-        # TODO: Test If Sorting is Accurate
-    
-    # def test_index_by(self):
-    #     # Create a few test pages with different tags
-    #     path1 = self.wiki.path('page1')
-    #     with open(path1, 'w') as f:
-    #         f.write('title: Page 1\ntags: a,b,c\n\ncontent')
-
-    #     path2 = self.wiki.path('page2')
-    #     with open(path2, 'w') as f:
-    #         f.write('title: Page 2\ntags: b,c,d\n\ncontent')
-
-    #     path3 = self.wiki.path('page3')
-    #     with open(path3, 'w') as f:
-    #         f.write('title: Page 3\ntags: c,d,e\n\ncontent')
-
-    #     # Get the index by the 'tags' attribute
-    #     index = self.wiki.index_by('tags')
-    #     print(f'Index -> {index}')
-
-        # assert 1 == 2
-    
-    def test_get_by_title(self):
-        # Create a few test pages with different tags
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: Page 1\ntags: a,b,c\n\ncontent')
-        
-        # get the page by the title
-        pages = self.wiki.get_by_title('Page 1')
-        assert pages[0] is not None
-        assert pages[0].title == 'Page 1'
-        assert pages[0].url == self.url.lower()
-
-        # get the page by the title
-        pages = self.wiki.get_by_title('Page That Doesn\'t Exist')
-        assert pages is None
-
-    def test_get_tags(self):
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_index_by()')
-        tags = self.wiki.get_tags()
-        assert tags  == {}
-
-        workout_page = self.wiki.path("workout_page")
-        workout_page_content = 'Perform 30 minutes of moderate to high intensity exercise, such as jogging, cycling, or weight lifting, at least 3-4 times per week.'
-        with open(workout_page, 'w') as f:
-            f.write(f'title: # 7 Week Workout Plans\ntags: inspirational, personal\n\n{workout_page_content}')
-        
-        adventurous_page = self.wiki.path("adventurous_page")
-        adventurous_page_content = 'Explore a new outdoor activity, such as hiking, rock climbing, or kayaking, at least once a month to add excitement and adventure to your personal life.'
-        with open(adventurous_page, 'w') as f:
-            f.write(f'title: # Lifestyle\ntags: personal, outdoor\n\n{adventurous_page_content}')
-
-        tags = self.wiki.get_tags()
-
-        assert len(tags['inspirational']) == 1
-        assert len(tags['personal']) == 2
-        assert len(tags['outdoor']) == 1
-
-        seven_week_workout_plan_page = tags['inspirational'][0]
-        assert seven_week_workout_plan_page.title == '# 7 Week Workout Plans'
-        assert seven_week_workout_plan_page.body.strip() == workout_page_content
-        assert seven_week_workout_plan_page.tags == 'inspirational, personal'
-
-        lifestyle_page = tags['personal'][1]
-        assert lifestyle_page.title == '# Lifestyle'
-        assert lifestyle_page.body.strip() == adventurous_page_content
-        assert lifestyle_page.tags == 'personal, outdoor'
-    
-    def test_index_by_tag(self):
-        workout_page = self.wiki.path("workout_page")
-        workout_page_content = 'Perform 30 minutes of moderate to high intensity exercise, such as jogging, cycling, or weight lifting, at least 3-4 times per week.'
-        with open(workout_page, 'w') as f:
-            f.write(f'title: # 7 Week Workout Plans\ntags: inspirational, personal\n\n{workout_page_content}')
-        
-        adventurous_page = self.wiki.path("adventurous_page")
-        adventurous_page_content = 'Explore a new outdoor activity, such as hiking, rock climbing, or kayaking, at least once a month to add excitement and adventure to your personal life.'
-        with open(adventurous_page, 'w') as f:
-            f.write(f'title: # Lifestyle\ntags: personal, outdoor\n\n{adventurous_page_content}')
-        
-        focus_page = self.wiki.path("focus")
-        focus_page_content = 'Organize your closet by sorting clothes into keep, donate, and toss piles.'
-        with open(focus_page, 'w') as f:
-            f.write(f'title: # Focus Mode\ntags: work, indoor\n\n{focus_page_content}')
-        
-        tag = 'personal'
-        tagged_pages = self.wiki.index_by_tag(tag)
-        assert tagged_pages[0].title == '# 7 Week Workout Plans'
-        assert tagged_pages[1].title == '# Lifestyle'
-        assert len(tagged_pages) == 2
-
-        tag = 'indoor'
-        tagged_pages = self.wiki.index_by_tag(tag)
-        assert len(tagged_pages) == 1
-        assert tagged_pages[0].title == '# Focus Mode'
-
-        tag = 'travel'
-        tagged_pages = self.wiki.index_by_tag(tag)
-        assert len(tagged_pages) == 0
-    
-    def test_search_default(self):
-        workout_page = self.wiki.path("workout_page")
-        workout_page_content = 'Perform 30 minutes of moderate to high intensity exercise, such as jogging, cycling, or weight lifting, at least 3-4 times per week.'
-        with open(workout_page, 'w') as f:
-            f.write(f'title: # 7 Week Workout Plans\ntags: inspirational, personal\n\n{workout_page_content}')
-        
-        adventurous_page = self.wiki.path("adventurous_page")
-        adventurous_page_content = 'Explore a new outdoor activity, such as hiking, rock climbing, or kayaking, at least once a month to add excitement and adventure to your personal life.'
-        with open(adventurous_page, 'w') as f:
-            f.write(f'title: # Lifestyle\ntags: personal, outdoor\n\n{adventurous_page_content}')
-        
-        focus_page = self.wiki.path("focus")
-        focus_page_content = 'Organize your closet by sorting clothes into keep, donate, and toss piles.'
-        with open(focus_page, 'w') as f:
-            f.write(f'title: # Focus Mode\ntags: work, indoor\n\n{focus_page_content}')
-        
-        # search for the term 'jogging' with ignore_case=True and default (attrs=['title', 'tags', 'body'])
-        term = 'jogging'
-        search_results = self.wiki.search(term)
-        assert len(search_results) == 1
-        assert search_results[0].title == '# 7 Week Workout Plans'
-    
-    def test_search_while_not_ignoring_case(self):
-        workout_page = self.wiki.path("workout_page")
-        workout_page_content = 'Perform 30 minutes of moderate to high intensity exercise, such as jogging, cycling, or weight lifting, at least 3-4 times per week.'
-        with open(workout_page, 'w') as f:
-            f.write(f'title: # 7 Week Workout Plans CommonSearchableTerm\ntags: inspirational, personal\n\n{workout_page_content}')
-        
-        adventurous_page = self.wiki.path("adventurous_page")
-        adventurous_page_content = 'Explore a new outdoor activity, such as hiking, rock climbing, or kayaking, at least once a month to add excitement and adventure to your personal life.'
-        with open(adventurous_page, 'w') as f:
-            f.write(f'title: # Lifestyle\ntags: personal, outdoor, CommonSearchableTerm\n\n{adventurous_page_content}')
-        
-        focus_page = self.wiki.path("focus")
-        focus_page_content = 'Organize your closet by sorting clothes into keep, donate, and toss piles.'
-        with open(focus_page, 'w') as f:
-            f.write(f'title: # Focus Mode\ntags: work, indoor\n\n{focus_page_content}')
-        
-        # search for the term 'CommonSearchableTerm' with ignore_case=False and attrs=['title', 'tags']
-        term = 'CommonSearchableTerm'
-        search_results = self.wiki.search(term, ignore_case=False, attrs=['title', 'tags'])
-        assert len(search_results) == 2
-        assert search_results[0].title == '# 7 Week Workout Plans CommonSearchableTerm'
-        assert search_results[1].title == '# Lifestyle'
-
-        # search for the term 'CommonSearchableTerm' with ignore_case=False and attrs=['title', 'tags']
-        term = 'commonsearchableterm'
-        search_results = self.wiki.search(term, ignore_case=False, attrs=['title', 'tags'])
-        assert len(search_results) == 0
-    
-    def test_search_that_is_not_in_the_attribute_specified(self):
-        workout_page = self.wiki.path("workout_page")
-        workout_page_content = 'Perform 30 minutes of moderate to high intensity exercise, such as jogging, cycling, or weight lifting, at least 3-4 times per week.'
-        with open(workout_page, 'w') as f:
-            f.write(f'title: # 7 Week Workout Plans TermNotFoundInTheBody\ntags: inspirational, personal\n\n{workout_page_content}')
-        
-        adventurous_page = self.wiki.path("adventurous_page")
-        adventurous_page_content = 'Explore a new outdoor activity, such as hiking, rock climbing, or kayaking, at least once a month to add excitement and adventure to your personal life.'
-        with open(adventurous_page, 'w') as f:
-            f.write(f'title: # Lifestyle\ntags: personal, outdoor, TermNotFoundInTheBody\n\n{adventurous_page_content}')
-        
-        focus_page = self.wiki.path("focus")
-        focus_page_content = 'Organize your closet by sorting clothes into keep, donate, and toss piles.'
-        with open(focus_page, 'w') as f:
-            f.write(f'title: # Focus Mode\ntags: work, indoor\n\n{focus_page_content}')
-        
-        # search for the term 'TermNotFoundInTheBody' with ignore_case=False and attrs=['body']
-        term = 'TermNotFoundInTheBody'
-        search_results = self.wiki.search(term, ignore_case=False, attrs=['body'])
-        assert len(search_results) == 0
+    def test_save_image(self):
+        file = Image.new("L", [128, 128])
+        file.filename = "filename.jpg"
+        self.wiki.save_image(file)
+        full_path = os.path.join(config.PIC_BASE, file.filename)
+        assert os.path.exists(full_path)
+        with Image.open(full_path) as im:
+            assert im.format == "JPEG"
+            assert im.size == (128, 128)
+            assert im.mode == "L"

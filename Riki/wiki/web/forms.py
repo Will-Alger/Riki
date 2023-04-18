@@ -20,7 +20,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class URLForm(Form):
-    url = TextField('', [InputRequired()])
+    url = TextField("", [InputRequired()])
 
     def validate_url(form, field):
         if current_wiki.exists(field.data):
@@ -31,17 +31,18 @@ class URLForm(Form):
 
 
 class SearchForm(Form):
-    term = TextField('', [InputRequired()])
+    term = TextField("", [InputRequired()])
     ignore_case = BooleanField(
-        description='Ignore Case',
+        description="Ignore Case",
         # FIXME: default is not correctly populated
-        default=True)
+        default=True,
+    )
 
 
 class EditorForm(Form):
-    title = TextField('', [InputRequired()])
-    body = TextAreaField('', [InputRequired()])
-    tags = TextField('')
+    title = TextField("", [InputRequired()])
+    body = TextAreaField("", [InputRequired()])
+    tags = TextField("")
 
 
 class LoginForm(Form):
@@ -86,4 +87,4 @@ class SignupForm(Form):
         valemail =  current_users.get_user(field.data)
         flash(f'val email -> {valemail}')
         if valemail is not None:
-            raise ValidationError('This Email ID is already registered. Please login')
+            raise ValidationError("This Email ID is already registered. Please login")
