@@ -5,16 +5,17 @@ from wiki.web.db import *
 
 
 class ImageDAO(object):
-    def __init__(self, path):
+    def __init__(self):
         self.connection = get_db()
         self.cur = self.connection.cursor()
         self.userDAO = UserDaoManager('/var/db/riki.db')
 
     def save_image(self, filename, userID):
         
+        self.userDAO.get_user(userID)
         self.cur.execute(
-            "INSERT INTO images (id, filename, userid) VALUES (?, ?, ?)",
-            (str(uuid.uuid4()), filename, userID)
+            """INSERT INTO images (filename, userid) VALUES (?, ?)""",
+            (filename, userID)
         )
         self.connection.commit()
 
@@ -22,9 +23,21 @@ class ImageDAO(object):
         self.cur.execute(
             "SELECT * FROM images WHERE userID = (?)", ((self.userDAO.get_user(user)))
         )
-        return self.cur.fetchone()
+        return self.cur.fetchall()
     
     def close_db(self):
         self.connection.close()
-        self.userDAO.close_db()    
+        self.userDAO.close_db()  
 
+    def filename_exists(self, filename):
+        self.cur.execute(
+            "SELECT EXISTS(SELECT 1 FROM images WHERE filename = (?))", ((filename,))
+        )  
+        return self.cur.fetchone() == 1
+
+    def get_image_owner(self, filename):
+        self.cur.execute(
+            """SELECT 1 FROM users WHERE id = (SELECT userid FROM images WHERE filename = ?)""", 
+            (filename,)
+        )
+        return self.cur.fetchone()

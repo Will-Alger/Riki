@@ -9,7 +9,7 @@ CREATE TABLE users (
 CREATE TABLE images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filename TEXT UNIQUE NOT NULL,
-    username TEXT NOT NULL
+    userid INTEGER NOT NULL
 );
 
 CREATE TABLE page_index (

@@ -18,10 +18,10 @@ Wiki Editor
 			<div class="form-actions">
         <div class="pull-left">
           <a class="btn" href="#preview" id="previewbtn">Preview</a>
+          <a href="{{ url_for('wiki.index_images', user_id=current_user.get_id()) }}" target="_blank"><button type="button" class="btn btn-primary">
+            Images (opens in new tab)
+          </button></a>
         </div>
-        <a href="{{ url_for('wiki.user_images', user_id=current_user.get_id()) }}"><button type="button" class="btn btn-primary">
-          My Images (opens in new tab)
-        </button></a>
         
 				<div class="pull-right">
           <a class="btn" href="{{ url_for('wiki.display', url=page.url) }}">Cancel</a>

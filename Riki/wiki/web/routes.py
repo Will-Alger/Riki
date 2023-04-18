@@ -229,23 +229,25 @@ def user_create():
 
     form = SignupForm()
    
-
     if request.method == 'POST' and form.validate_on_submit():
         name = form.name.data
         email = form.email.data
         password = form.password.data
         confirm_password = form.confirm_password.data
+        if not confirm_password == password:
+            flash('passwords do not match!')
+            return render_template('signup.html')
         userDaoManager = UserDaoManager('/var/db/riki.db')
-        user = UserDao(name, email, password)
+        user = UserDao(name, email, password, userDaoManager)
         userDaoManager.create_user(user)
-        users = userDaoManager.get_users()
+        # users = userDaoManager.get_users()
 
-        for user in users:
-            flash(f'{user[0]} {user[1]} {user[2]} {user[3]}')
+        # for user in users:
+        #     flash(f'{user[0]} {user[1]} {user[2]} {user[3]}')
         # user = current_users.get_user(form.name.data)
         # login_user(user)
         # user.set('authenticated', True)
-        flash('Sign up successful.', 'success')
+        flash('Sign up successful.')
 
         userDaoManager.close_db()
 
@@ -267,9 +269,16 @@ def user_delete(user_id):
 
 # Image uploading
 def allowed_file(filename): 
+        dao = ImageDAO()
         ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
-        return '.' in filename and \
-            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        if dao.filename_exists(filename):
+            dao.close_db()
+            return False
+        if not ('.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS):
+            dao.close_db()
+            return False
+        return True
 
 @bp.route('/user/<string:user_id>/upload/', methods=['POST'])
 @login_required
@@ -281,9 +290,9 @@ def upload_image(user_id):
         if image and allowed_file(image.filename):
             path = os.path.join(config.PIC_BASE, image.filename)
             image.save(path)
-            dao = ImageDAO('/var/db/riki.db')
-            dao.save_image(image.filename, userID=user_id)
-            dao.close_db()
+            imageDAO = ImageDAO()
+            imageDAO.save_image(image.filename, userID=user_id)
+            imageDAO.close_db()
             flash('Image Saved!')
             return redirect(request.referrer)
         else: 
@@ -295,7 +304,9 @@ def upload_image(user_id):
 @bp.route('/user/<string:user_id>/images/')
 @login_required
 def user_images(user_id):
-    flash('This feature is not available yet!')
+    dao = ImageDAO()
+    dao.get_user_images(user_id)
+    dao.close_db()
     return redirect(request.referrer)
     
 @bp.route('/img/')
