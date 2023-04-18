@@ -8,7 +8,7 @@ from io import open
 
 import os
 import re
-from flask import flash
+
 from flask import abort
 from flask import url_for
 from flask import send_file
@@ -23,7 +23,6 @@ nltk.download("punkt")
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
-
 from bs4 import BeautifulSoup
 import markdown
 
@@ -279,24 +278,67 @@ class Page(object):
         self["tags"] = value
 
     def get_page_text(self):
+        """
+        Extracts text content from the HTML body using Beautiful Soup, and concatenates it with page title.
+
+        Returns:
+            str: A string containing the body text and title of the page separated by a space.
+        """
         # Extract the text content from the HTML body using Beautiful Soup
         body_text = BeautifulSoup(self.html, "html.parser").get_text()
         # Concatenate the body text and title into a single string with a space in between
         return body_text + " " + self.title
 
     def tokenize(self, page_text):
-        # Tokenize the lower case page text
-        return word_tokenize(page_text.lower())
+        """
+        Tokenizes the given text using the word_tokenize function from the nltk library.
+
+        Args:
+            page_text (str): The text to be tokenized.
+
+        Returns:
+            list: A list of tokens extracted from the text.
+        """
+        return word_tokenize(page_text)
 
     def remove_stopwords(self, tokens):
+        """
+        Removes stopwords from a list of tokens.
+
+        Args:
+            tokens (list): A list of tokens.
+
+        Returns:
+            A list of tokens with stopwords removed.
+
+        """
         # Get a list of English stopwords
         english_stopwords = stopwords.words("english")
         return [t for t in tokens if t not in english_stopwords]
 
     def token_frequency(self, tokens_wo_stopwords):
+        """
+        Calculates the frequency of each token in a list of tokens.
+
+        Args:
+            tokens_wo_stopwords (list): A list of tokens with stopwords removed.
+
+        Returns:
+            dict: A dictionary containing the frequency of each token.
+        """
         return dict(Counter(tokens_wo_stopwords))
 
     def tokenize_and_count(self):
+        """
+        Tokenizes the page text, removes stopwords and returns a dictionary containing
+        the count of each token.
+
+        Args:
+            None
+
+        Returns:
+            token_freq (dict): A dictionary containing the count of each token.
+        """
         # Get page text without markdown
         page_text = self.get_page_text()
 
@@ -306,7 +348,7 @@ class Page(object):
         # Remove stopwords from tokens
         tokens_wo_stopwords = self.remove_stopwords(tokens)
 
-        # translate remaining tokens into dictionary of pairs [token -> token count]
+        # Translate remaining tokens into dictionary of pairs [token -> token count]
         token_freq = self.token_frequency(tokens_wo_stopwords)
 
         # Return the dictionary of word frequencies
@@ -344,6 +386,8 @@ class Wiki(object):
         return Page(path, url, new=True)
 
     def move(self, url, newurl):
+        source = os.path.join(self.root, url) + ".md"
+        target = os.path.join(self.root, newurl) + ".md"
         source = os.path.join(self.root, url) + ".md"
         target = os.path.join(self.root, newurl) + ".md"
         # normalize root path (just in case somebody defined it absolute,
@@ -440,7 +484,18 @@ class Wiki(object):
                 tagged.append(page)
         return sorted(tagged, key=lambda x: x.title.lower())
 
-    def search(self, term, ignore_case=True, attrs=["title", "tags", "body"]):
+    def search(self, term, ignore_case=True):
+        """
+        Search for pages based on given search term(s), and return a list of Page objects in order of relevance.
+
+        :param term: A string containing the search term(s).
+        :type term: str
+        :param ignore_case: Flag to indicate whether to ignore case sensitivity or not. Default is True.
+        :type ignore_case: bool
+        :return: A list of page objects matching the search terms in order of relevance.
+        :rtype: list[Page]
+        """
+        # If this isn't locally imported, then a circular import error arises
         from wiki.web.pageDAO import PageDaoManager
 
         dao = PageDaoManager()
@@ -449,34 +504,26 @@ class Wiki(object):
         # Tokenize the search term(s)
         search_terms = word_tokenize(term.lower() if ignore_case else term)
 
-        # Find the matching doc_ids from the page_index table
-        query = f"""
-            SELECT doc_id, SUM(frequency) as total_frequency
-            FROM page_index
-            WHERE word IN ({', '.join('?' for _ in search_terms)})
-            GROUP BY doc_id
-            ORDER BY total_frequency DESC
-        """
-        results = dao.cur.execute(query, search_terms).fetchall()
+        # Gather the search results from the database with the given search terms
+        search_results = dao.search(search_terms, ignore_case)
 
-        # Create a dictionary of page_id to frequency
-        page_freq_map = {}
-        for row in results:
-            doc_id = row[0]
-            frequency = row[1]
-            page_freq_map[doc_id] = frequency
+        # Create a dictionary of pages indexed by their ids
+        pages_dict = {page.id: page for page in pages}
 
-        # Filter the matching pages based on their doc_ids
-        matching_pages = [page for page in pages if page.id in page_freq_map]
+        # Filter the matching pages based on the order of the search_results keys (doc_ids)
+        matching_pages = [
+            pages_dict[doc_id] for doc_id in search_results if doc_id in pages_dict
+        ]
 
-        # Sort the matching pages by frequency
-        sorted_matching_pages = sorted(
-            matching_pages, key=lambda page: page_freq_map[page.id], reverse=True
-        )
-
-        return sorted_matching_pages
+        return matching_pages
 
     # For image uploading
+    def allowed_file(self, filename):
+        ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
+        return (
+            "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+        )
+
     def allowed_file(self, filename):
         ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
         return (
