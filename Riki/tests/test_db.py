@@ -56,41 +56,48 @@ def test_users_table_created(client):
 
 
 def test_create_user(user_dao_manager):
-    user = UserDao("John Doe", "john@example.com", "password123")
+    user = UserDao("John", "Doe", "john@example.com", "password123")
     user_dao_manager.create_user(user)
     result = user_dao_manager.get_user(user.email)
-    assert result[0] == user.email
+    assert result.email == user.email
 
 
 def test_get_users(user_dao_manager):
-    user1 = UserDao("John Doe", "john@example.com", "passwordJohnDoe")
-    user2 = UserDao("Jane Smith", "jane@example.com", "passwordJaneSmith")
+    user1 = UserDao("John", "Doe", "john@example.com", "passwordJohnDoe")
+    user2 = UserDao("Jane", "Smith", "jane@example.com", "passwordJaneSmith")
     user_dao_manager.create_user(user1)
     user_dao_manager.create_user(user2)
     result = user_dao_manager.get_users()
     assert len(result) == 2
-    assert result[0]["name"], user1.name
-    assert result[1]["email"], user2.email
+    print(f" Tedyooo -> {result[0]}")
+    assert result[0][1] == user1.first_name
+    assert result[0][2] == user1.last_name
+    assert result[0][3] == user1.email
+    assert result[1][3] == user2.email
 
 
 def test_get_user(user_dao_manager):
-    user = UserDao("John Doe", "john@example.com", "password123")
+    user = UserDao("John", "Doe", "john@example.com", "password123")
     user_dao_manager.create_user(user)
     result = user_dao_manager.get_user(user.email)
-    assert result[0] == user.email
+    assert result.first_name == user.first_name
+    assert result.last_name == user.last_name
+    assert result.email == user.email
 
 
 def test_close_db(user_dao_manager):
     assert user_dao_manager.close_db() is None, "Database connection not closed"
 
 
-def test_UserDao_constructor():
-    name = "John Doe"
+def test_UserDao_constructor(user_dao_manager):
+    first_name = "John"
+    last_name = "Doe"
     email = "john@example.com"
     password = "password123"
-    user = UserDao(name, email, password)
+    user = UserDao(first_name, last_name, email, password)
 
-    assert user.name == name
+    assert user.first_name == first_name
+    assert user.last_name == last_name
     assert user.email == email
     assert user.password == password
 
