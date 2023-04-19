@@ -161,6 +161,9 @@ class TestWiki:
     def setup_method(self):
         self.tempdir = "/tmp"
         self.wiki = Wiki(self.tempdir)
+        self.url = 'originalURL'
+        self.newurl = 'newURL'
+        self.newurlFolder = 'newURL//new_folder'
 
     def test_constructor(self):
         assert self.wiki.root == self.tempdir
@@ -179,7 +182,7 @@ class TestWiki:
         with open(path, "w") as f:
             f.write("# Page 1")
 
-        assert self.wiki.exists(self.url)
+        assert self.wiki.exists(url)
 
     def test_get(self):
         # url = 'test_url_get'
