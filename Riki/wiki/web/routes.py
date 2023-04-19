@@ -262,7 +262,7 @@ def user_admin(user_id):
 def user_delete(user_id):
     pass
 
-@bp.route('/user_profile', methods=['GET'])
+@bp.route('/user/profile/', methods=['GET'])
 @login_required
 def user_profile():
     return render_template('profile.html', user=current_user)
