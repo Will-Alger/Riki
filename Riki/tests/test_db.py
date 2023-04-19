@@ -84,6 +84,38 @@ def test_get_user(user_dao_manager):
     assert result.last_name == user.last_name
     assert result.email == user.email
 
+def test_delete_all_users(user_dao_manager):
+    user1 = UserDao("John", "Doe", "john@example.com", "passwordJohnDoe")
+    user2 = UserDao("Jane", "Smith", "jane@example.com", "passwordJaneSmith")
+    user_dao_manager.create_user(user1)
+    user_dao_manager.create_user(user2)
+
+    result = user_dao_manager.get_users()
+    assert len(result) == 2
+
+    user_dao_manager.delete_all_users()
+    result = user_dao_manager.get_users()
+    assert len(result) == 0
+
+def test_delete_existing_user(user_dao_manager):
+    user = UserDao("John", "Doe", "john@example.com", "password123")
+    user_dao_manager.create_user(user)
+    result = user_dao_manager.get_user(user.email)
+    assert result.email == user.email
+
+    result = user_dao_manager.delete_user(user.email)
+    assert result == True
+
+    all_users = user_dao_manager.get_users()
+    assert len(all_users) == 0
+
+def test_delete_nonexistent_user(user_dao_manager):
+    nonexistent_email = "emaildne@riki.com"
+    result = user_dao_manager.delete_user(nonexistent_email)
+    assert result == False
+
+    all_users = user_dao_manager.get_users()
+    assert len(all_users) == 0
 
 def test_close_db(user_dao_manager):
     assert user_dao_manager.close_db() is None, "Database connection not closed"
