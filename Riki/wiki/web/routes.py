@@ -226,7 +226,6 @@ def user_index():
 def user_create():
 
     form = SignupForm()
-    userDaoManager = UserDaoManager('/var/db/riki.db')
 
     if request.method == 'POST' and form.validate_on_submit():
         first_name = form.first_name.data
@@ -235,8 +234,8 @@ def user_create():
         password = form.password.data
 
         user = UserDao(first_name, last_name, email, password)
-        userDaoManager.create_user(user)
-        users = userDaoManager.get_users()
+        current_users.create_user(user)
+        users = current_users.get_users()
 
         for item in users:
             flash(f'{item[0]} {item[1]} {item[2]} {item[3]}')
@@ -245,7 +244,7 @@ def user_create():
         user.set_authenticated(True)
         flash('Sign up successful.', 'success')
 
-        userDaoManager.close_db()
+        current_users.close_db()
 
         return redirect(request.args.get("next") or url_for('wiki.index'))
     return render_template('signup.html', form=form)
@@ -262,6 +261,11 @@ def user_admin(user_id):
 @bp.route('/user/delete/<string:user_id>/')
 def user_delete(user_id):
     pass
+
+@bp.route('/user_profile', methods=['GET'])
+@login_required
+def user_profile():
+    return render_template('profile.html', user=current_user)
 
 # Image uploading
 

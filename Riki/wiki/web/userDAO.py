@@ -33,9 +33,9 @@ class UserDao(object):
 
 
 class UserDaoManager(object):
-    def __init__(self, path):
-        self.connection = get_db()
-        self.cur = self.connection.cursor()
+  def __init__(self, path):
+      self.connection = get_db()
+      self.cur = self.connection.cursor()
 
   def create_user(self, user):
     hashedPassword = generate_password_hash(user.password, method='sha256')
