@@ -1,55 +1,47 @@
 import sqlite3
-from wiki.web.db import get_db
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from wiki.web.db import *
+
 
 class UserDao(object):
-  def __init__(self, name, email, password, manager):
-    
-    self.manager = manager
-    self.data = {
-      "name" : name,
-      "email" : email,
-      "hashed_password" : generate_password_hash(password),
-      "authenticated" : False,
-    }
+  def __init__(self, first_name, last_name, email, password):
+    self.first_name = first_name
+    self.last_name = last_name
+    self.email = email
+    self.password = password
+    self.authenticated = False
+    self.manager = UserDaoManager('/var/db/riki.db')
+    self.active = True
+  
+  def set_authenticated(self, value):
+      self.authenticated = value
 
   def is_authenticated(self):
     return self.data['authenticated']
 
   def is_active(self):
-    return True
+    return self.active
 
   def is_anonymous(self):
     return False
   
   def get_id(self):
-    return self.manager.get_user(self.data['name'])
+    return self.email
   
   def check_password(self, password):
-    return generate_password_hash(password) == self.manager.get_password(self.get_id)
-  
-  def set(self, option, value):
-    self.data[option] = value
-    self.save()
-
-  def save(self):
-    self.manager.cur.execute(
-      "UPDATE users SET name = (?), email = (?), password = (?) WHERE id = (?)",
-      (self.data['name'], self.data['email'], self.data['hashed_password'], self.get_id())
-    )
-
-  
+    return check_password_hash(self.password, password)
 
 
 class UserDaoManager(object):
   def __init__(self, path):
-    self.connection = get_db()
-    self.cur = self.connection.cursor()
+      self.connection = get_db()
+      self.cur = self.connection.cursor()
 
   def create_user(self, user):
+    hashedPassword = generate_password_hash(user.password, method='sha256')
     self.cur.execute(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      (user.data['name'], user.data['email'], user.data['hashed_password'])
+      "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)",
+      (user.first_name, user.last_name, user.email, hashedPassword)
     )
     self.connection.commit()
 
@@ -64,11 +56,30 @@ class UserDaoManager(object):
     result = cur.fetchall()
     return result
   
-  def get_user(self, name):
+  def get_user(self, email):
     self.cur.execute(
-      "SELECT id FROM users WHERE name = (?)", ((name,))
+      "SELECT * FROM users WHERE email = (?)", ((email,))
     )
-    return self.cur.fetchone()
+    user = self.cur.fetchone()
+    if user is None:
+      return None
+    else:
+      return UserDao(user[1], user[2], user[3], user[4])
+  
+  def delete_all_users(self):
+    self.cur.execute("DELETE FROM users")
+    self.connection.commit()
+  
+  def delete_user(self, email):
+    user = self.get_user(email)
+    if user is not None:
+      self.cur.execute(
+        "DELETE FROM users WHERE email = (?)", ((email,))
+      )
+      self.connection.commit()
+      return True
+    else:
+      return False
 
   def close_db(self):
     self.connection.close()

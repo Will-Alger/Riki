@@ -146,7 +146,6 @@ def move(url):
 
         # Update the page_index tokens to point to the new page id
         pageDaoManager.update_page_index_id(new_page_id, old_page_id)
-        pageDaoManager.close_db()
 
         # Redirect the user to the new URL
         return redirect(url_for('wiki.display', url=newurl))
@@ -165,7 +164,6 @@ def delete(url):
     
     pageDaoManager = PageDaoManager()
     pageDaoManager.delete(page)
-    pageDaoManager.close_db()
 
     flash('Page "%s" was deleted.' % page.title, 'success')
 
@@ -201,9 +199,10 @@ def search():
 def user_login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = current_users.get_user(form.name.data)
+        user = current_users.get_user(form.email.data)
         login_user(user)
-        user.set('authenticated', True)
+        user.set_authenticated(True)
+        
         flash('Login successful.', 'success')
         return redirect(request.args.get("next") or url_for('wiki.index'))
     return render_template('login.html', form=form)
@@ -212,7 +211,7 @@ def user_login():
 @bp.route('/user/logout/')
 @login_required
 def user_logout():
-    current_user.set('authenticated', False)
+    current_user.set_authenticated(False)
     logout_user()
     flash('Logout successful.', 'success')
     return redirect(url_for('wiki.index'))
@@ -228,28 +227,24 @@ def user_index():
 def user_create():
 
     form = SignupForm()
-   
     if request.method == 'POST' and form.validate_on_submit():
-        name = form.name.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
         email = form.email.data
         password = form.password.data
-        confirm_password = form.confirm_password.data
-        if not confirm_password == password:
-            flash('passwords do not match!')
-            return render_template('signup.html')
-        userDaoManager = UserDaoManager('/var/db/riki.db')
-        user = UserDao(name, email, password, userDaoManager)
-        userDaoManager.create_user(user)
-        # users = userDaoManager.get_users()
 
-        # for user in users:
-        #     flash(f'{user[0]} {user[1]} {user[2]} {user[3]}')
-        # user = current_users.get_user(form.name.data)
-        # login_user(user)
-        # user.set('authenticated', True)
-        flash('Sign up successful.')
+        user = UserDao(first_name, last_name, email, password)
+        current_users.create_user(user)
+        users = current_users.get_users()
 
-        userDaoManager.close_db()
+        for item in users:
+            flash(f'{item[0]} {item[1]} {item[2]} {item[3]}')
+
+        login_user(user)
+        user.set_authenticated(True)
+        flash('Sign up successful.', 'success')
+
+        current_users.close_db()
 
         return redirect(request.args.get("next") or url_for('wiki.index'))
     return render_template('signup.html', form=form)
@@ -267,6 +262,11 @@ def user_admin(user_id):
 def user_delete(user_id):
     pass
 
+@bp.route('/user_profile/', methods=['GET'])
+@login_required
+def user_profile():
+    return render_template('profile.html', user=current_user)
+
 # Image uploading
 def allowed_file(filename): 
         dao = ImageDAO()
@@ -280,9 +280,9 @@ def allowed_file(filename):
             return False
         return True
 
-@bp.route('/user/<string:user_id>/upload/', methods=['POST'])
+@bp.route('/user/upload/', methods=['POST'])
 @login_required
-def upload_image(user_id):
+def upload_image():
     if 'an_image' not in request.files:
         flash('There is no image!')
     image = request.files['an_image']
@@ -291,7 +291,7 @@ def upload_image(user_id):
             path = os.path.join(config.PIC_BASE, image.filename)
             image.save(path)
             imageDAO = ImageDAO()
-            imageDAO.save_image(image.filename, userID=user_id)
+            imageDAO.save_image(image.filename, userID=current_user)
             imageDAO.close_db()
             flash('Image Saved!')
             return redirect(request.referrer)
