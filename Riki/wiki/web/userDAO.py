@@ -46,12 +46,10 @@ class UserDaoManager(object):
     self.connection.commit()
 
   def get_users(self):
-    self.connection.row_factory = sqlite3.Row
-    cur = self.connection.cursor()
-    cur.execute(
+    self.cur.execute(
       "SELECT * FROM users"
     )
-    result = cur.fetchall()
+    result = self.cur.fetchall()
     return result
   
   def get_user(self, email):
