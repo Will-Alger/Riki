@@ -237,12 +237,12 @@ def user_create():
         current_users.create_user(user)
         users = current_users.get_users()
 
-        for item in users:
-            flash(f'{item[0]} {item[1]} {item[2]} {item[3]}')
+        # for item in users:
+        #     flash(f'{item[0]} {item[1]} {item[2]} {item[3]}')
 
         login_user(user)
         user.set_authenticated(True)
-        flash('Sign up successful.', 'success')
+        flash('Sign up successful.')
 
         current_users.close_db()
 
@@ -291,7 +291,7 @@ def upload_image():
             path = os.path.join(config.PIC_BASE, image.filename)
             image.save(path)
             imageDAO = ImageDAO()
-            imageDAO.save_image(image.filename, userID=current_user)
+            imageDAO.save_image(image.filename, email=current_user.email)
             imageDAO.close_db()
             flash('Image Saved!')
             return redirect(request.referrer)
@@ -301,18 +301,25 @@ def upload_image():
     return redirect(request.referrer)
     
     
-@bp.route('/user/<string:user_id>/images/')
+@bp.route('/user/images/')
 @login_required
-def user_images(user_id):
+def user_images():
     dao = ImageDAO()
-    dao.get_user_images(user_id)
+    images = dao.get_user_images(current_user.email)
     dao.close_db()
-    return redirect(request.referrer)
+    return render_template('user_images.html', images = images)
     
 @bp.route('/img/')
 def index_images():
     images = os.listdir(config.PIC_BASE)
-    return render_template('index_images.html', images=images)
+    dao = ImageDAO()
+    final = []
+    for filename in images:
+        arr = []
+        arr.append(filename)
+        arr.append(dao.get_image_owner(filename))
+        final.append(arr)
+    return render_template('index_images.html', images=final)
 
 @bp.route('/img/<string:filename>/', methods=['GET'])
 def view_image(filename):

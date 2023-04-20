@@ -57,6 +57,7 @@
 								<li><a href="{{ url_for('wiki.search') }}">Search</a></li>
 								<li class="divider-vertical"></li>
 								<li><a href="{{ url_for('wiki.create') }}">New Page</a></li>
+								<li><a href="{{ url_for('wiki.index_images')}}">Images</a></li>
 								<li class="divider-vertical"></li>
 								<li></li>
 							</ul>
@@ -65,6 +66,7 @@
 								{% if current_user.is_authenticated %}
 									<li><a href="{{ url_for('wiki.user_logout') }}">Logout</a></li>
 									<li><a href="{{ url_for('wiki.user_profile') }}">Profile</a></li>
+									<li><a href="{{ url_for('wiki.user_images')}}">My Images</a></li>
 								{% else %}
 									<li><a href="{{ url_for('wiki.user_login') }}">Login</a></li>
 									<li><a href="{{ url_for('wiki.user_create') }}">Sign up</a></li>

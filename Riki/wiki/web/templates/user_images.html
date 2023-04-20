@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-Index of Images
+My Images
 {% endblock title %}
 
 {% block content %}
@@ -11,15 +11,13 @@ Index of Images
             <tr>
                 <th>Filename</th>
                 <th>Image</th>
-                <th>Owner</th>
             </tr>
         </thead>
         <tbody>
-            {% for image in images %}
+            {% for row in images %}
                 <tr>
-                    <td>{{ image[0] }}</td>
-                    <td><img src="{{url_for('wiki.view_image', filename=image[0])}}" alt=""></td>
-                    <td>{{ image[1][0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td><img src="{{url_for('wiki.view_image', filename=row[1])}}" alt=""></td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -45,16 +43,16 @@ Index of Images
 {% block sidebar %}
     <ul class="nav">
         <li>
-            <a href="{{ url_for('wiki.upload_image', user_id=current_user.get_id()) }}">
+            <a href="{{ url_for('wiki.upload_image') }}">
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploader">
                     Upload Image
                 </button>
             </a>
         </li>
         <li>
-            <a href="{{ url_for('wiki.user_images', user_id=current_user.get_id()) }}">
+            <a href="{{ url_for('wiki.index_images') }}">
                 <button type="button" class="btn btn-primary">
-                    My Images
+                    All Images
                 </button>
             </a>
         </li>

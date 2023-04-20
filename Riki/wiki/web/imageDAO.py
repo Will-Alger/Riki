@@ -10,18 +10,17 @@ class ImageDAO(object):
         self.cur = self.connection.cursor()
         self.userDAO = UserDaoManager('/var/db/riki.db')
 
-    def save_image(self, filename, userID):
-        
-        self.userDAO.get_user(userID)
+    def save_image(self, filename, email):
+        self.userDAO.get_user(email)
         self.cur.execute(
-            """INSERT INTO images (filename, userid) VALUES (?, ?)""",
-            (filename, userID)
+            """INSERT INTO images (filename, email) VALUES (?, ?)""",
+            (filename, email)
         )
         self.connection.commit()
 
-    def get_user_images(self, user):
+    def get_user_images(self, email):
         self.cur.execute(
-            "SELECT * FROM images WHERE userID = (?)", ((self.userDAO.get_user(user)))
+            "SELECT * FROM images WHERE email = (?)", ((email,))
         )
         return self.cur.fetchall()
     
@@ -37,7 +36,7 @@ class ImageDAO(object):
 
     def get_image_owner(self, filename):
         self.cur.execute(
-            """SELECT 1 FROM users WHERE id = (SELECT userid FROM images WHERE filename = ?)""", 
+            """SELECT email FROM images WHERE filename = ?""", 
             (filename,)
         )
         return self.cur.fetchone()
