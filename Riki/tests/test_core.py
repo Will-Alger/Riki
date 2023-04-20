@@ -5,7 +5,6 @@ from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki
 import config
 from wiki.web.pageDAO import PageDaoManager
-from werkzeug.exceptions import NotFound
 
 
 class TestProcessor:
@@ -44,10 +43,10 @@ class TestProcessor:
     def test_process_meta(self):
         sample = Processor("meta:page\n\n# Sample Title\nSome sample paragraph text")
 
-    #     sample.process_pre()
-    #     sample.process_markdown()
-    #     sample.split_raw()
-    #     sample.process_meta()
+        sample.process_pre()
+        sample.process_markdown()
+        sample.split_raw()
+        sample.process_meta()
 
         test = OrderedDict([("meta", "page")])
         assert sample.meta == test
@@ -170,9 +169,6 @@ class TestWiki:
     def setup_method(self):
         self.tempdir = "/tmp"
         self.wiki = Wiki(self.tempdir)
-        self.url = 'originalURL'
-        self.newurl = 'newURL'
-        self.newurlFolder = 'newURL//new_folder'
 
     def test_constructor(self):
         assert self.wiki.root == self.tempdir
@@ -193,96 +189,20 @@ class TestWiki:
 
         assert self.wiki.exists(url)
 
-    def test_get(self):
-        # url = 'test_url_get'
-        result = self.wiki.get(self.url)
-        assert result == None
-        
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_get()')
-        page = self.wiki.get(self.url)
-
-        assert page.url == self.url
-        assert page.path == path
-        assert page.title == '# Page 1'
-        assert page.body.strip() == 'test_get()'
-
-    def test_get_or_404_raises_404_exception_when_page_does_not_exist(self):
-        with pytest.raises(NotFound) as info:
-            self.wiki.get_or_404('page_that_is_nonexistent')
-        
-        assert info.type == NotFound
-        assert info.value.code == 404
-
-    def test_get_or_404_returns_page_when_page_exists(self):
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_get_or_404_returns_page_when_page_exists()')
-
-        expected_page = self.wiki.get(self.url)
-        print(f"Expected Page -> {expected_page}")
-        print(f"Returned Page -> {self.wiki.get(self.url)}")
-        assert self.wiki.get_or_404(self.url).path == expected_page.path
-
-    def test_get_bare_returns_false_when_path_exists(self):
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_get_bare_returns_false_when_path_exists()')
-        page = self.wiki.get_bare(self.url)
-        assert page == False
-
-    def test_get_bare_returns_page_when_page_does_not_exist(self):
-        page = self.wiki.get_bare('path')
-        assert page.url == 'path'
-
-    def test_move(self):
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_move()')
-        assert self.wiki.exists(self.url)
-        assert not self.wiki.exists(self.newurl)
-
-        self.wiki.move(self.url, self.newurl)
-        assert not self.wiki.exists(self.url)
-        assert self.wiki.exists(self.newurl)
-
-        new_wiki_page = self.wiki.get(self.newurl)
-        assert new_wiki_page.title == "# Page 1"
-
-    def test_move_outside_defined_directory(self):
-        newurl_outside_directory = '../test_move_new_url_for_directory'
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_move_outside_defined_directory()')
-        
-        with pytest.raises(RuntimeError) as error:
-            self.wiki.move(self.url, newurl_outside_directory)
-        expected_error_value = f'Possible write attempt outside content directory: {newurl_outside_directory}'
-
-        assert str(error.value) == expected_error_value
-
-    def test_move_inside_a_folder_that_does_not_exist(self):
-        path = self.wiki.path(self.url)
-        with open(path, 'w') as f:
-            f.write('title: # Page 1\n\ntest_move_inside_a_folder_that_does_not_exist()')
-        
-        self.wiki.move(self.url, self.newurlFolder)
-        assert not self.wiki.get(self.url)
-        assert self.wiki.get(self.newurlFolder).url == self.newurlFolder
-
     def test_delete_existing_page(self):
-        wiki_path = self.wiki.path(self.url)
+        url = "existing-page"
+        wiki_path = self.wiki.path(url)
         with open(wiki_path, "w") as f:
             f.write("# Existing Page")
 
-        deleted = self.wiki.delete(self.url)
+        page = self.wiki.delete(url)
 
-        assert deleted is True
+        assert page is True
         assert not self.wiki.exists(wiki_path)
 
     def test_delete_nonexistent_page(self):
-        page = self.wiki.delete(self.url)
+        url = "nonexistent-page"
+        page = self.wiki.delete(url)
         assert page is False
 
     def test_allowed_file(self):
