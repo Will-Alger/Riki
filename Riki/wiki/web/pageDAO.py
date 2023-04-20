@@ -136,3 +136,39 @@ class PageDaoManager(object):
 
         # Commit changes to update the database
         self.connection.commit()
+
+    def search(self, search_terms, ignore_case=True):
+        """
+        Searches for pages containing all of the provided search terms.
+
+        Args:
+            search_terms (list[str]): A list of search terms to be searched.
+            ignore_case (bool): Set to True to ignore case sensitivity while searching.
+
+        Returns:
+            dict[string, int]: A dictionary containing doc_id as the key and total_frequency as the value for matching pages.
+
+        """
+        if ignore_case:
+            search_terms = [term.lower() for term in search_terms]
+            word_compare = "LOWER(word)"
+
+        else:
+            word_compare = "word"
+
+        # Build a SQL query string to retrieve the documents that match the search terms
+        query = f"""
+            SELECT doc_id, SUM(frequency) as total_frequency
+            FROM page_index
+            WHERE {word_compare} IN ({', '.join('?' for _ in search_terms)})
+            GROUP BY doc_id
+            ORDER BY total_frequency DESC
+            """
+
+        # Execute the query and fetch all results
+        results = self.cur.execute(query, search_terms).fetchall()
+
+        # Convert the results into a dictionary
+        result_dict = {row[0]: row[1] for row in results}
+
+        return result_dict

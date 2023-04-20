@@ -20,10 +20,12 @@ import nltk
 
 nltk.download("stopwords")
 nltk.download("punkt")
+
+nltk.download("stopwords")
+nltk.download("punkt")
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
-
 from bs4 import BeautifulSoup
 import markdown
 
@@ -291,7 +293,8 @@ class Page(object):
         # Concatenate the body text and title into a single string with a space in between
         return body_text + " " + self.title
 
-    def tokenize(self, page_text):
+    @staticmethod
+    def tokenize(page_text):
         """
         Tokenizes the given text using the word_tokenize function from the nltk library.
 
@@ -303,7 +306,8 @@ class Page(object):
         """
         return word_tokenize(page_text)
 
-    def remove_stopwords(self, tokens):
+    @staticmethod
+    def remove_stopwords(tokens):
         """
         Removes stopwords from a list of tokens.
 
@@ -345,10 +349,10 @@ class Page(object):
         page_text = self.get_page_text()
 
         # Tokenize the page text
-        tokens = self.tokenize(page_text)
+        tokens = Page.tokenize(page_text)
 
         # Remove stopwords from tokens
-        tokens_wo_stopwords = self.remove_stopwords(tokens)
+        tokens_wo_stopwords = Page.remove_stopwords(tokens)
 
         # Translate remaining tokens into dictionary of pairs [token -> token count]
         token_freq = self.token_frequency(tokens_wo_stopwords)
@@ -485,16 +489,46 @@ class Wiki(object):
                 tagged.append(page)
         return sorted(tagged, key=lambda x: x.title.lower())
 
-    def search(self, term, ignore_case=True, attrs=["title", "tags", "body"]):
+    def search(self, term, ignore_case=True):
+        """
+        Search for pages based on given search term(s), and return a list of Page objects in order of relevance.
+
+        :param term: A string containing the search term(s).
+        :type term: str
+        :param ignore_case: Flag to indicate whether to ignore case sensitivity or not. Default is True.
+        :type ignore_case: bool
+        :return: A list of page objects matching the search terms in order of relevance.
+        :rtype: list[Page]
+        """
+        # If this isn't locally imported, then a circular import error arises
+        from wiki.web.pageDAO import PageDaoManager
+
+        dao = PageDaoManager()
         pages = self.index()
-        regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
-        matched = []
-        for page in pages:
-            for attr in attrs:
-                if regex.search(getattr(page, attr)):
-                    matched.append(page)
-                    break
-        return matched
+
+        # Tokenize the search term(s)
+        # search_terms = word_tokenize(term.lower() if ignore_case else term)
+        search_terms = word_tokenize(term)
+
+        # english_stopwords = stopwords.words("english")
+        # search_terms_wo_stopwords = [
+        #     t for t in search_terms if t not in english_stopwords
+        # ]
+
+        search_terms_wo_stopwords = Page.remove_stopwords(search_terms)
+
+        # Gather the search results from the database with the given search terms
+        search_results = dao.search(search_terms_wo_stopwords, ignore_case)
+
+        # Create a dictionary of pages indexed by their ids
+        pages_dict = {page.id: page for page in pages}
+
+        # Filter the matching pages based on the order of the search_results keys (doc_ids)
+        matching_pages = [
+            pages_dict[doc_id] for doc_id in search_results if doc_id in pages_dict
+        ]
+
+        return matching_pages
 
     # For image uploading
     def allowed_file(self, filename):
