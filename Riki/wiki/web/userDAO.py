@@ -10,7 +10,6 @@ class UserDao(object):
     self.email = email
     self.password = password
     self.authenticated = False
-    self.manager = UserDaoManager('/var/db/riki.db')
     self.active = True
   
   def set_authenticated(self, value):

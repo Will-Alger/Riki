@@ -247,9 +247,23 @@ def test_user_profile(client):
 
 def test_upload_image(client):
     # login necessary
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
     client.post(
-        "/user/login/", data=dict(name="name", password="1234"), follow_redirects=True
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
     )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
 
     # send the request
     rv = client.post(
@@ -265,9 +279,23 @@ def test_upload_image(client):
 
 def test_upload_image_error(client):
     # login necessary
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
     client.post(
-        "/user/login/", data=dict(name="name", password="1234"), follow_redirects=True
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
     )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
 
     # send the request
     rv = client.post(
@@ -282,9 +310,23 @@ def test_upload_image_error(client):
 
 
 def test_view_image(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
     client.post(
-        "/user/login/", data=dict(name="name", password="1234"), follow_redirects=True
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
     )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
 
     file = Image.new("RGB", [128, 128])
     file.filename = "filename.jpg"
