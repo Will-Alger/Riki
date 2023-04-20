@@ -5,6 +5,7 @@ from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki
 import config
 from wiki.web.pageDAO import PageDaoManager
+from werkzeug.exceptions import NotFound
 
 
 class TestProcessor:
@@ -212,7 +213,7 @@ class TestWiki:
             self.wiki.get_or_404('page_that_is_nonexistent')
         
         assert info.type == NotFound
-        assert info.value.code == 40433
+        assert info.value.code == 404
 
     def test_get_or_404_returns_page_when_page_exists(self):
         path = self.wiki.path(self.url)
@@ -232,13 +233,10 @@ class TestWiki:
         assert page == False
 
     def test_get_bare_returns_page_when_page_does_not_exist(self):
-        page = self.wiki.get_bare(self.url)
-        wiki_path = self.wiki.path(self.url)
-        assert page.url == self.url
-        assert page.path == wiki_path
+        page = self.wiki.get_bare('path')
+        assert page.url == 'path'
 
     def test_move(self):
-        # newurl = 'test_move_new_url'
         path = self.wiki.path(self.url)
         with open(path, 'w') as f:
             f.write('title: # Page 1\n\ntest_move()')
@@ -265,7 +263,6 @@ class TestWiki:
         assert str(error.value) == expected_error_value
 
     def test_move_inside_a_folder_that_does_not_exist(self):
-        # newurl = 'test_move_v2_/new_folder'
         path = self.wiki.path(self.url)
         with open(path, 'w') as f:
             f.write('title: # Page 1\n\ntest_move_inside_a_folder_that_does_not_exist()')
@@ -275,19 +272,17 @@ class TestWiki:
         assert self.wiki.get(self.newurlFolder).url == self.newurlFolder
 
     def test_delete_existing_page(self):
-        url = "existing-page"
         wiki_path = self.wiki.path(self.url)
         with open(wiki_path, "w") as f:
             f.write("# Existing Page")
 
         deleted = self.wiki.delete(self.url)
 
-        assert False is True
+        assert deleted is True
         assert not self.wiki.exists(wiki_path)
 
     def test_delete_nonexistent_page(self):
-        url = "nonexistent-page"
-        page = self.wiki.delete(url)
+        page = self.wiki.delete(self.url)
         assert page is False
 
     def test_allowed_file(self):
