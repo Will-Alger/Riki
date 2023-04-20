@@ -3,7 +3,7 @@ import tempfile, os
 from PIL import Image
 from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki
-
+from werkzeug.exceptions import NotFound
 from wiki.core import Processor, Page
 
 class TestProcessor:
@@ -161,6 +161,9 @@ class TestWiki:
     def setup_method(self):
         self.tempdir = "/tmp"
         self.wiki = Wiki(self.tempdir)
+        self.url = 'originalURL'
+        self.newurl = 'newURL'
+        self.newurlFolder = 'newURL//new_folder'
 
     def test_constructor(self):
         assert self.wiki.root == self.tempdir
@@ -179,7 +182,7 @@ class TestWiki:
         with open(path, "w") as f:
             f.write("# Page 1")
 
-        assert self.wiki.exists(self.url)
+        assert self.wiki.exists(url)
 
     def test_get(self):
         # url = 'test_url_get'
@@ -198,10 +201,10 @@ class TestWiki:
 
     def test_get_or_404_raises_404_exception_when_page_does_not_exist(self):
         with pytest.raises(NotFound) as info:
-            self.wiki.get_or_404(self.url)
+            self.wiki.get_or_404('page_that_is_nonexistent')
         
         assert info.type == NotFound
-        assert info.value.code == 404
+        assert info.value.code == 40433
 
     def test_get_or_404_returns_page_when_page_exists(self):
         path = self.wiki.path(self.url)
@@ -265,13 +268,13 @@ class TestWiki:
 
     def test_delete_existing_page(self):
         url = "existing-page"
-        wiki_path = self.wiki.path(url)
+        wiki_path = self.wiki.path(self.url)
         with open(wiki_path, "w") as f:
             f.write("# Existing Page")
 
         deleted = self.wiki.delete(self.url)
 
-        assert deleted is True
+        assert False is True
         assert not self.wiki.exists(wiki_path)
 
     def test_delete_nonexistent_page(self):
