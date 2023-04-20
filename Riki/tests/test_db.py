@@ -1,7 +1,4 @@
 from Riki import app
-
-# import wiki.web.init_db
-# from wiki.web.init_db import init_db
 import os
 import tempfile
 import unittest

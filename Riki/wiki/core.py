@@ -293,7 +293,8 @@ class Page(object):
         # Concatenate the body text and title into a single string with a space in between
         return body_text + " " + self.title
 
-    def tokenize(self, page_text):
+    @staticmethod
+    def tokenize(page_text):
         """
         Tokenizes the given text using the word_tokenize function from the nltk library.
 
@@ -305,7 +306,8 @@ class Page(object):
         """
         return word_tokenize(page_text)
 
-    def remove_stopwords(self, tokens):
+    @staticmethod
+    def remove_stopwords(tokens):
         """
         Removes stopwords from a list of tokens.
 
@@ -347,10 +349,10 @@ class Page(object):
         page_text = self.get_page_text()
 
         # Tokenize the page text
-        tokens = self.tokenize(page_text)
+        tokens = Page.tokenize(page_text)
 
         # Remove stopwords from tokens
-        tokens_wo_stopwords = self.remove_stopwords(tokens)
+        tokens_wo_stopwords = Page.remove_stopwords(tokens)
 
         # Translate remaining tokens into dictionary of pairs [token -> token count]
         token_freq = self.token_frequency(tokens_wo_stopwords)
@@ -456,7 +458,8 @@ class Wiki(object):
         for page in self.index():
             value = getattr(page, key)
             pre = pages.get(value, [])
-            pages[value] = pre.append(page)
+            pre.append(page)
+            pages[value] = pre
         return pages
 
     def get_by_title(self, title):
@@ -504,10 +507,18 @@ class Wiki(object):
         pages = self.index()
 
         # Tokenize the search term(s)
-        search_terms = word_tokenize(term.lower() if ignore_case else term)
+        # search_terms = word_tokenize(term.lower() if ignore_case else term)
+        search_terms = word_tokenize(term)
+
+        # english_stopwords = stopwords.words("english")
+        # search_terms_wo_stopwords = [
+        #     t for t in search_terms if t not in english_stopwords
+        # ]
+
+        search_terms_wo_stopwords = Page.remove_stopwords(search_terms)
 
         # Gather the search results from the database with the given search terms
-        search_results = dao.search(search_terms, ignore_case)
+        search_results = dao.search(search_terms_wo_stopwords, ignore_case)
 
         # Create a dictionary of pages indexed by their ids
         pages_dict = {page.id: page for page in pages}

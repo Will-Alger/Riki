@@ -150,7 +150,9 @@ class PageDaoManager(object):
 
         """
         if ignore_case:
+            search_terms = [term.lower() for term in search_terms]
             word_compare = "LOWER(word)"
+
         else:
             word_compare = "word"
 
