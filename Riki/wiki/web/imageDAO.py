@@ -1,5 +1,4 @@
 import sqlite3
-import uuid
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.db import *
 
@@ -8,9 +7,12 @@ class ImageDAO(object):
     def __init__(self):
         self.connection = get_db()
         self.cur = self.connection.cursor()
-        self.userDAO = UserDaoManager('/var/db/riki.db')
+        self.userDAO = UserDaoManager()
 
     def save_image(self, filename, email):
+        """
+        this method adds an image associated with an email to the database
+        """
         self.userDAO.get_user(email)
         self.cur.execute(
             """INSERT INTO images (filename, email) VALUES (?, ?)""",
@@ -30,9 +32,9 @@ class ImageDAO(object):
 
     def filename_exists(self, filename):
         self.cur.execute(
-            "SELECT EXISTS(SELECT 1 FROM images WHERE filename = (?))", ((filename,))
+            "SELECT 1 FROM images WHERE filename = (?)", ((filename,))
         )  
-        return self.cur.fetchone() == 1
+        return self.cur.fetchone() is not None
 
     def get_image_owner(self, filename):
         self.cur.execute(

@@ -28,7 +28,6 @@ from wiki.web.forms import URLForm
 from wiki.web import current_wiki
 from wiki.web import current_users
 from wiki.web.user import protect
-from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
 from wiki.web.imageDAO import ImageDAO
 from wiki.web.pageDAO import PageDaoManager
@@ -285,9 +284,10 @@ def allowed_file(filename):
 def upload_image():
     if 'an_image' not in request.files:
         flash('There is no image!')
+        return redirect(request.referrer)
     image = request.files['an_image']
     if image.filename != '':
-        if image and allowed_file(image.filename):
+        if allowed_file(image.filename):
             path = os.path.join(config.PIC_BASE, image.filename)
             image.save(path)
             imageDAO = ImageDAO()
@@ -295,10 +295,9 @@ def upload_image():
             imageDAO.close_db()
             flash('Image Saved!')
             return redirect(request.referrer)
-        else: 
-            flash('Unacceptable file type!')
-    flash('Image Not Saved!')
-    return redirect(request.referrer)
+        else:
+            flash('File name not allowed! Either unsupported type (jpg, jpeg, png are supported file types) or reused file name.')
+            return redirect(request.referrer)
     
     
 @bp.route('/user/images/')

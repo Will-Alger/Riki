@@ -10,14 +10,14 @@ class UserDao(object):
     self.email = email
     self.password = password
     self.authenticated = False
-    self.manager = UserDaoManager('/var/db/riki.db')
+    self.manager = UserDaoManager()
     self.active = True
   
   def set_authenticated(self, value):
       self.authenticated = value
 
   def is_authenticated(self):
-    return self.data['authenticated']
+    return self.authenticated
 
   def is_active(self):
     return self.active
@@ -33,7 +33,7 @@ class UserDao(object):
 
 
 class UserDaoManager(object):
-  def __init__(self, path):
+  def __init__(self):
       self.connection = get_db()
       self.cur = self.connection.cursor()
 
