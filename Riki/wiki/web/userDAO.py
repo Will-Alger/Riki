@@ -1,6 +1,9 @@
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 from wiki.web.db import *
+from functools import wraps
+from flask import current_app
+from flask_login import current_user
 
 
 class UserDao(object):
@@ -78,3 +81,12 @@ class UserDaoManager(object):
 
   def close_db(self):
     self.connection.close()
+
+def protect(f):
+  @wraps(f)
+  def wrapper(*args, **kwargs):
+      if current_app.config.get("PRIVATE") and not current_user.is_authenticated:
+          return current_app.login_manager.unauthorized()
+      return f(*args, **kwargs)
+
+  return wrapper

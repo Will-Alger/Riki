@@ -27,7 +27,7 @@ from wiki.web.forms import SearchForm
 from wiki.web.forms import URLForm
 from wiki.web import current_wiki
 from wiki.web import current_users
-from wiki.web.user import protect
+from wiki.web.userDAO import protect
 from wiki.web.userDAO import UserDaoManager
 from wiki.web.userDAO import UserDao
 from wiki.web.pageDAO import PageDaoManager

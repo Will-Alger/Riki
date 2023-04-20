@@ -7,7 +7,6 @@ from flask_login import LoginManager
 from werkzeug.local import LocalProxy
 from wiki.web.db import *
 from wiki.core import Wiki
-from wiki.web.user import UserManager
 from wiki.web.userDAO import UserDaoManager
 
 
