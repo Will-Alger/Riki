@@ -7,6 +7,27 @@
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='pygments.css') }}">
 		<link rel="stylesheet" href="text/css" href="{{ url_for('static', filename='profile.css') }}">
 		<style>
+			table {
+				border-collapse: collapse;
+				width: 100%;
+				max-width: 600px;
+				margin: 0 auto;
+			}
+
+			th, td {
+				text-align: left;
+				padding: 12px;
+			}
+
+			th {
+				background-color: #F2F2F2;
+				font-weight: bold;
+			}
+
+			tr:nth-child() {
+				background-color: #F2F2F2;
+			}
+			
 			.card-img-top {
 				width: 60%;
 				border-radius: 50%;

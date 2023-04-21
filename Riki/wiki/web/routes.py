@@ -33,6 +33,8 @@ from wiki.web.userDAO import UserDao
 from wiki.web.pageDAO import PageDaoManager
 import sqlite3
 from PIL import Image
+from datetime import datetime
+
 
 bp = Blueprint("wiki", __name__)
 
@@ -85,6 +87,8 @@ def edit(url):
 
         # Connect to the database
         pageDaoManager = PageDaoManager()
+
+        current_users.record_history(current_user.email, url, datetime.now())
 
         # Update the page index
         pageDaoManager.update_page_index(page)
@@ -272,7 +276,8 @@ def user_delete():
 @bp.route('/user/profile/', methods=['GET'])
 @login_required
 def user_profile():
-    return render_template('profile.html', user=current_user)
+    edits = current_users.get_edit_history(current_user.email)
+    return render_template('profile.html', user=current_user, edits=edits)
 
 # Image uploading
 

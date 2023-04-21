@@ -4,7 +4,6 @@ from wiki.web.db import *
 from functools import wraps
 from flask import current_app
 from flask_login import current_user
-from datetime import datetime
 
 
 class UserDao(object):
@@ -80,6 +79,23 @@ class UserDaoManager(object):
       return True
     else:
       return False
+  
+  def record_history(self, email, page_url, edit_time):
+    self.cur.execute(
+    "INSERT INTO user_edit_history (user_email, page_url, edit_time) VALUES (?, ?, ?)",
+    (email, page_url, edit_time)
+    )
+    self.connection.commit()
+  
+  def get_edit_history(self, email):
+    user = self.get_user(email)
+    if user is not None:
+      self.cur.execute(
+        "SELECT * FROM user_edit_history WHERE user_email = (?)", ((email,))
+      )
+      return self.cur.fetchall()
+    else:
+      return None
 
   def close_db(self):
     self.connection.close()

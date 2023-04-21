@@ -14,3 +14,9 @@ CREATE TABLE page_index (
     frequency INTEGER NOT NULL,
     PRIMARY KEY (word, doc_id)
 );
+
+CREATE TABLE user_edit_history(
+    user_email TEXT NOT NULL,
+    page_url TEXT NOT NULL,
+    edit_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

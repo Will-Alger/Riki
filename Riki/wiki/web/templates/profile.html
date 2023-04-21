@@ -8,6 +8,18 @@
   <img src="https://marketplace.canva.com/EAFEits4-uw/1/0/1600w/canva-boy-cartoon-gamer-animated-twitch-profile-photo-oEqs2yqaL8s.jpg" alt="">
 </div> -->
 
+<div id="know_more" class="modal hide fade" aria-hidden="true">
+  <div class="modal-header">
+    <h3>What's Riki?</h3>
+  </div>
+  <div class="modal-body">
+    <p>Welcome to Riki, the world's most amazing flask wiki handler! We're excited to have you here and can't wait for you to start exploring all the amazing content on our site. Whether you're looking to learn something new or share your own knowledge with the world, Riki has everything you need to succeed. So sit back, relax, and let's dive into the wonderful world of wikis!</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-outline-success" data-dismiss="modal" aria-hidden="true">Thanks</a>
+  </div>
+</div>
+
 <div id="confirmDeleteProfile" class="modal hide fade" aria-hidden="true">
   <div class="modal-header">
     <h3>Are you sure?</h3>
@@ -31,8 +43,7 @@
         <img src="https://marketplace.canva.com/EAFEits4-uw/1/0/1600w/canva-boy-cartoon-gamer-animated-twitch-profile-photo-oEqs2yqaL8s.jpg" class="card-img-top" alt="...">
         <div class="card-body">
           <h5 class="card-title">{{ user.first_name.capitalize() }} {{ user.last_name.capitalize() }} </h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-          <a href="#" class="btn btn-primary">Know More</a>
+          <a href="#know_more" data-toggle="modal" class="text-info">Know More</a>
         </div>
       </div>
     </div>
@@ -45,12 +56,50 @@
 {% block sidebar %}
 <h2>Welcome, {{ user.first_name.capitalize() }}!</h2>
 <br>
-<ul class="nav nav-tabs nav-stacked">
-  <li>Sign up Time: {{ user.signup_time.strftime('%Y-%m-%d %H:%M') }}</li>
-  <li>Email: {{ user.email }}</li>
-</ul>
+<table>
+  <tr>
+    <th>First Name</th>
+    <td>{{ user.first_name }}</td>
+  </tr>
+  <tr>
+    <th>Last Name</th>
+    <td>{{ user.last_name }}</td>
+  </tr>
+  <tr>
+    <th>Redistered on</th>
+    <td>{{ user.signup_time.strftime('%Y-%m-%d %H:%M') }}</td>
+  </tr>
+  <tr>
+    <th>Email</th>
+    <td>{{ user.email }}</td>
+  </tr>
+</table>
+<br>
 <h3>Settings</h3>
 <ul class="nav nav-tabs nav-stacked">
   <li><a href="#confirmDeleteProfile" data-toggle="modal" class="text-error">Delete</a></li>
 </ul>
+<br>
+<h3>Edit History</h3>
+<ul class="nav nav-tabs nav-stacked">
+  {% for edit in edits %}
+    <li><a href="#" class="text-muted" >edited  {{ edit.page_url }} on {{ edit.edit_time }}</a></li>
+  {% endfor %}
+</ul>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Page URL</th>
+      <th>Last Edited On</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for edit in edits %}
+      <tr>
+        <td>{{ edit.page_url }}</td>
+        <td>{{ edit.edit_time }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock sidebar %}
