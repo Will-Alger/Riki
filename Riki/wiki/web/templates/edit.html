@@ -9,7 +9,8 @@
   {{ form.updated_first_name(placeholder='First Name', value=user.first_name) }}<br><br>
 	{{ form.updated_last_name(placeholder='Last Name', value=user.last_name) }}<br><br>
 
-	<input type="submit" class="btn btn-primary" value="Confirm Edit">
+  <a href="{{ url_for('wiki.user_profile') }}" data-toggle="modal" class="btn btn-primary">Go Back</a>
+	<input type="submit" class="btn btn-success" value="Confirm Edit">
 </form>
 
 {% endblock content %}
