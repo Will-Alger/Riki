@@ -27,7 +27,6 @@ from wiki.web.forms import SearchForm
 from wiki.web.forms import URLForm
 from wiki.web import current_wiki
 from wiki.web import current_users
-from wiki.web.user import protect
 from wiki.web.userDAO import UserDao
 from wiki.web.imageDAO import ImageDAO
 from wiki.web.pageDAO import PageDaoManager
@@ -37,7 +36,6 @@ from PIL import Image
 bp = Blueprint('wiki', __name__)
 
 @bp.route('/')
-@protect
 def home():
     page = current_wiki.get('home')
     if page:
@@ -46,21 +44,18 @@ def home():
 
 
 @bp.route('/index/')
-@protect
 def index():
     pages = current_wiki.index()
     return render_template('index.html', pages=pages)
 
 
 @bp.route('/<path:url>/')
-@protect
 def display(url):
     page = current_wiki.get_or_404(url)
     return render_template('page.html', page=page)
 
 
 @bp.route('/create/', methods=['GET', 'POST'])
-@protect
 def create():
     form = URLForm()
     if form.validate_on_submit():
@@ -71,7 +66,6 @@ def create():
     return render_template('create.html', form=form)
 
 @bp.route('/edit/<path:url>/', methods=['GET', 'POST'])
-@protect
 def edit(url):
     page = current_wiki.get(url)
     form = EditorForm(obj=page)
@@ -98,7 +92,6 @@ def edit(url):
 
 
 @bp.route('/preview/', methods=['POST'])
-@protect
 def preview():
     data = {}
     processor = Processor(request.form['body'])
@@ -109,7 +102,6 @@ def preview():
 # This route handles moving a page to a new URL
 # This route handles moving a page to a new URL
 @bp.route('/move/<path:url>/', methods=['GET', 'POST'])
-@protect
 def move(url):
     # Get the page object based on the URL provided
     # Get the page object based on the URL provided
@@ -156,7 +148,6 @@ def move(url):
 
 
 @bp.route('/delete/<path:url>/')
-@protect
 def delete(url):
     page = current_wiki.get_or_404(url)
     current_wiki.delete(url)
@@ -170,21 +161,18 @@ def delete(url):
 
 
 @bp.route('/tags/')
-@protect
 def tags():
     tags = current_wiki.get_tags()
     return render_template('tags.html', tags=tags)
 
 
 @bp.route('/tag/<string:name>/')
-@protect
 def tag(name):
     tagged = current_wiki.index_by_tag(name)
     return render_template('tag.html', pages=tagged, tag=name)
 
 
 @bp.route('/search/', methods=['GET', 'POST'])
-@protect
 def search():
     form = SearchForm()
     if form.validate_on_submit():

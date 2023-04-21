@@ -52,5 +52,7 @@ def test_get_user_images(client, dao):
     assert len(ret) == 3
     assert len(ret2) == 2
 
-
+def test_get_image_owner(client, dao):
+    dao.save_image('filename.jpg', 'email@email.com')
+    assert dao.get_image_owner('filename.jpg')[0] == 'email@email.com'
 
