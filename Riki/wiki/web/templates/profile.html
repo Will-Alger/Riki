@@ -67,7 +67,7 @@
   </tr>
   <tr>
     <th>Redistered on</th>
-    <td>{{ user.signup_time.strftime('%Y-%m-%d %H:%M') }}</td>
+    <td>{{ user.signup_time.strftime('%m-%d-%Y %H:%M') }}</td>
   </tr>
   <tr>
     <th>Email</th>
@@ -84,7 +84,7 @@
 <h3>Edit History</h3>
 <ul class="nav nav-tabs nav-stacked">
   {% for edit in edits %}
-    <li><a href="#" class="text-muted" >edited  {{ edit.page_url }} on {{ edit.edit_time }}</a></li>
+    <li><a href="#" class="text-muted" >edited  {{ edit.page_url }} on {{ edit.edit_time.strftime('%m-%d-%Y %H:%M') }}</a></li>
   {% endfor %}
 </ul>
 <table class="table table-bordered">
@@ -97,8 +97,8 @@
   <tbody>
     {% for edit in edits %}
       <tr>
-        <td>{{ edit.page_url }}</td>
-        <td>{{ edit.edit_time }}</td>
+        <td><a href="{{ url_for('wiki.display', url=edit.page_url) }}">{{ edit.page_url }}</a></td>
+        <td>{{ edit.edit_time.strftime('%m-%d-%Y %H:%M') }}</td>
       </tr>
     {% endfor %}
   </tbody>
