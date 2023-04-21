@@ -235,8 +235,9 @@ def user_create():
         last_name = form.last_name.data
         email = form.email.data
         password = form.password.data
+        signup_time = form.signup_time
 
-        user = UserDao(first_name, last_name, email, password)
+        user = UserDao(first_name, last_name, email, password, signup_time)
         current_users.create_user(user)
         users = current_users.get_users()
 
@@ -245,7 +246,7 @@ def user_create():
 
         login_user(user)
         user.set_authenticated(True)
-        flash('Sign up successful.', 'success')
+        flash(f'Sign up successful. You signed up at {user.signup_time}.', 'success')
 
         current_users.close_db()
 
@@ -260,9 +261,13 @@ def user_admin(user_id):
         return render_template("admin.html")
 
 
-@bp.route("/user/delete/<string:user_id>/")
-def user_delete(user_id):
-    pass
+@bp.route("/user/delete/")
+def user_delete():
+    current_users.delete_user(current_user.email)
+    current_user.set_authenticated(False)
+    logout_user()
+    flash('Your account has been deleted.', 'success')
+    return redirect(url_for('wiki.index'))
 
 @bp.route('/user/profile/', methods=['GET'])
 @login_required

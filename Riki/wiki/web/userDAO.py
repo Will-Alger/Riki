@@ -4,16 +4,18 @@ from wiki.web.db import *
 from functools import wraps
 from flask import current_app
 from flask_login import current_user
+from datetime import datetime
 
 
 class UserDao(object):
-  def __init__(self, first_name, last_name, email, password):
+  def __init__(self, first_name, last_name, email, password, signup_time):
     self.first_name = first_name
     self.last_name = last_name
     self.email = email
     self.password = password
     self.authenticated = False
     self.active = True
+    self.signup_time = signup_time
   
   def set_authenticated(self, value):
       self.authenticated = value
@@ -42,8 +44,8 @@ class UserDaoManager(object):
   def create_user(self, user):
     hashedPassword = generate_password_hash(user.password, method='sha256')
     self.cur.execute(
-      "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)",
-      (user.first_name, user.last_name, user.email, hashedPassword)
+      "INSERT INTO users (first_name, last_name, email, password, created) VALUES (?, ?, ?, ?, ?)",
+      (user.first_name, user.last_name, user.email, hashedPassword, user.signup_time)
     )
     self.connection.commit()
 
@@ -62,7 +64,7 @@ class UserDaoManager(object):
     if user is None:
       return None
     else:
-      return UserDao(user[1], user[2], user[3], user[4])
+      return UserDao(user[1], user[2], user[3], user[4], user[5])
   
   def delete_all_users(self):
     self.cur.execute("DELETE FROM users")

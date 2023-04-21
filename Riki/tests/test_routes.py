@@ -219,6 +219,29 @@ def test_user_logout(client):
     assert b'Logout successful.' in rv.data
 
 
+def test_user_delete(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
+
+    rv = client.get('/user/delete/', follow_redirects=True)
+    assert b'Your account has been deleted.' in rv.data
+
+
 def test_user_profile(client):
 
     user_data = {

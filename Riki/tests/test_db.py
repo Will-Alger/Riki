@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 import pytest
 from wiki.web.userDAO import UserDao, UserDaoManager
 from wiki.web.db import *
+from datetime import datetime
 
 
 @pytest.fixture
@@ -53,15 +54,18 @@ def test_users_table_created(client):
 
 
 def test_create_user(user_dao_manager):
-    user = UserDao("John", "Doe", "john@example.com", "password123")
+    signup_time = datetime.utcnow()
+    user = UserDao("John", "Doe", "john@example.com", "password123", signup_time)
     user_dao_manager.create_user(user)
     result = user_dao_manager.get_user(user.email)
     assert result.email == user.email
+    assert result.signup_time == signup_time
 
 
 def test_get_users(user_dao_manager):
-    user1 = UserDao("John", "Doe", "john@example.com", "passwordJohnDoe")
-    user2 = UserDao("Jane", "Smith", "jane@example.com", "passwordJaneSmith")
+    signup_time = datetime.utcnow()
+    user1 = UserDao("John", "Doe", "john@example.com", "passwordJohnDoe", signup_time)
+    user2 = UserDao("Jane", "Smith", "jane@example.com", "passwordJaneSmith", signup_time)
     user_dao_manager.create_user(user1)
     user_dao_manager.create_user(user2)
     result = user_dao_manager.get_users()
@@ -71,19 +75,23 @@ def test_get_users(user_dao_manager):
     assert result[0][2] == user1.last_name
     assert result[0][3] == user1.email
     assert result[1][3] == user2.email
+    assert result[0][5] == signup_time
 
 
 def test_get_user(user_dao_manager):
-    user = UserDao("John", "Doe", "john@example.com", "password123")
+    signup_time = datetime.utcnow()
+    user = UserDao("John", "Doe", "john@example.com", "password123", signup_time)
     user_dao_manager.create_user(user)
     result = user_dao_manager.get_user(user.email)
     assert result.first_name == user.first_name
     assert result.last_name == user.last_name
     assert result.email == user.email
+    assert result.signup_time == signup_time
 
 def test_delete_all_users(user_dao_manager):
-    user1 = UserDao("John", "Doe", "john@example.com", "passwordJohnDoe")
-    user2 = UserDao("Jane", "Smith", "jane@example.com", "passwordJaneSmith")
+    signup_time = datetime.utcnow()
+    user1 = UserDao("John", "Doe", "john@example.com", "passwordJohnDoe", signup_time)
+    user2 = UserDao("Jane", "Smith", "jane@example.com", "passwordJaneSmith", signup_time)
     user_dao_manager.create_user(user1)
     user_dao_manager.create_user(user2)
 
@@ -95,7 +103,7 @@ def test_delete_all_users(user_dao_manager):
     assert len(result) == 0
 
 def test_delete_existing_user(user_dao_manager):
-    user = UserDao("John", "Doe", "john@example.com", "password123")
+    user = UserDao("John", "Doe", "john@example.com", "password123", datetime.utcnow())
     user_dao_manager.create_user(user)
     result = user_dao_manager.get_user(user.email)
     assert result.email == user.email
@@ -123,7 +131,7 @@ def test_UserDao_constructor(user_dao_manager):
     last_name = "Doe"
     email = "john@example.com"
     password = "password123"
-    user = UserDao(first_name, last_name, email, password)
+    user = UserDao(first_name, last_name, email, password, datetime.utcnow())
 
     assert user.first_name == first_name
     assert user.last_name == last_name

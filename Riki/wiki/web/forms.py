@@ -17,7 +17,7 @@ from wiki.web import current_users
 from flask import flash
 from wiki.web.userDAO import UserDao
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from datetime import datetime
 
 class URLForm(Form):
     url = TextField("", [InputRequired()])
@@ -82,6 +82,7 @@ class SignupForm(Form):
         InputRequired(),
         validators.EqualTo('password', message='Passwords must match'),
     ])
+    signup_time = datetime.now()
 
     def validate_email(form, field):
         valemail =  current_users.get_user(field.data)
