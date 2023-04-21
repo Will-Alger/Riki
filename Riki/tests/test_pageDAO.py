@@ -1,7 +1,4 @@
 from Riki import app
-
-# import wiki.web.init_db
-# from wiki.web.init_db import init_db
 import os
 import tempfile
 import unittest
@@ -136,3 +133,97 @@ def test_delete(client, dao):
 
     # assert tokens is empty
     assert len(tokens) == 0
+
+
+def test_search_empty(client, dao):
+    # Test searching for an empty list of search terms
+    result_dict = dao.search([], ignore_case=False)
+    assert len(result_dict) == 0
+
+
+def test_search_nonexistent_terms(client, dao):
+    # Define a sample page index dictionary
+    page_index1 = {"word1": 3, "word2": 2, "word3": 1}
+
+    # Create a mock page with a distinct id
+    page1 = MockPage("page1")
+
+    # Insert the sample page index into the database for the page
+    dao.add_or_update_tokens(page1, page_index1)
+
+
+def test_search_case_sensitive(client, dao):
+    # Define sample page index dictionaries with different capitalizations of the same words
+    page_index1 = {"word1": 3, "Word2": 2, "wOrd3": 1}
+    page_index2 = {"WORD1": 4, "word2": 1, "Word3": 5}
+
+    # Create two mock pages with distinct ids
+    page1 = MockPage("page1")
+    page2 = MockPage("page2")
+
+    # Insert the sample page indexes into the database for the two pages
+    dao.add_or_update_tokens(page1, page_index1)
+    dao.add_or_update_tokens(page2, page_index2)
+
+    # Test a case-sensitive search for "word1" and "Word2"
+    result_dict = dao.search(["word1", "Word2"], ignore_case=False)
+    assert len(result_dict) == 1
+    assert result_dict[page1.id] == 5
+
+    # Test a case-sensitive search for "WORD1" and "word2"
+    result_dict = dao.search(["WORD1", "word2"], ignore_case=False)
+    assert len(result_dict) == 1
+    assert result_dict[page2.id] == 5
+
+
+def test_search_case_insensitive(client, dao):
+    # Define sample page index dictionaries with different capitalizations of the same words
+    page_index1 = {"word1": 3, "Word2": 2, "wOrd3": 1}
+    page_index2 = {"WORD1": 4, "word2": 1, "Word3": 5}
+
+    # Create two mock pages with distinct ids
+    page1 = MockPage("page1")
+    page2 = MockPage("page2")
+
+    # Insert the sample page indexes into the database for the two pages
+    dao.add_or_update_tokens(page1, page_index1)
+    dao.add_or_update_tokens(page2, page_index2)
+
+    # Test a case-insensitive search for "word1" and "Word2"
+    result_dict = dao.search(["word1", "Word2"], ignore_case=True)
+    assert len(result_dict) == 2
+    assert result_dict[page1.id] == 5
+    assert result_dict[page2.id] == 5
+
+    # Test a case-insensitive search for "WORD1" and "word2"
+    result_dict = dao.search(["WORD1", "word2"], ignore_case=True)
+    assert len(result_dict) == 2
+    assert result_dict[page1.id] == 5
+    assert result_dict[page2.id] == 5
+
+
+def test_search_returns_results_in_descending_order(client, dao):
+    # Define sample page index dictionaries
+    page_index1 = {"word1": 3, "word2": 2, "word3": 1}
+    page_index2 = {"word1": 5, "word2": 4, "word3": 6}
+    page_index3 = {"word1": 22, "word2": 4, "word3": 6}
+
+    # Create two mock pages with distinct ids
+    page1 = MockPage("page1")
+    page2 = MockPage("page2")
+    page3 = MockPage("page3")
+
+    # Insert the sample page indexes into the database for the two pages
+    dao.add_or_update_tokens(page1, page_index1)
+    dao.add_or_update_tokens(page2, page_index2)
+    dao.add_or_update_tokens(page3, page_index3)
+
+    # Search for the terms and check if the frequencies are in descending order
+    result_dict = dao.search(["word1", "word2", "word3"], ignore_case=True)
+    assert len(result_dict) == 3
+
+    first_frequency = None
+    for frequency in result_dict.values():
+        if first_frequency is not None:
+            assert frequency <= first_frequency
+        first_frequency = frequency

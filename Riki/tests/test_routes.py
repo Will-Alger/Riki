@@ -122,6 +122,48 @@ def test_edit_post(client, testpage):
     with open("content/testpage.md", "r") as filein:
         assert "i edited the testpage" in filein.read()
 
+def test_user_login_successful(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+
+    rv = client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
+
+    assert b'Login successful.' in rv.data
+
+def test_user_login_unsuccessful(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+
+    rv = client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='passwordInCorrect'
+    ), follow_redirects=True)
+    
+    assert b'Errors occured verifying your input. Please check the marked fields below.' in rv.data
+
 def test_user_create_successful(client):
     user_data = {
         'first_name': 'john',
@@ -137,13 +179,47 @@ def test_user_create_successful(client):
     )
 
     # import pdb; pdb.set_trace()
-    
-    # with app.app_context():
-    #     rows = user_dao_manager.get_users()
-    #     print(f'Teddy -> {rows}')
-    # # assert 1 == 2
-    # print(rv.data.decode('utf-8'))
     assert b'Sign up successful.' in rv.data
+
+def test_user_create_unsuccessful(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'passwordNotConfirming',
+    }
+    rv = client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+
+    # import pdb; pdb.set_trace()
+    assert b'Errors occured verifying your input. Please check the marked fields below.' in rv.data
+
+def test_user_logout(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+
+    rv = client.get(
+        '/user/logout/',
+        follow_redirects=True
+    )
+
+    # import pdb; pdb.set_trace()
+    assert b'Logout successful.' in rv.data
+
 
 def test_user_profile(client):
 
@@ -166,7 +242,7 @@ def test_user_profile(client):
     ), follow_redirects=True)
     
     rv = client.get('/user/profile/', follow_redirects=True)
-    print(rv.data.decode('utf-8'))
+    # print(rv.data.decode('utf-8'))
     assert b'Profile' in rv.data
     assert b'Welcome, John' in rv.data
 

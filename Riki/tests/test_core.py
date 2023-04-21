@@ -3,8 +3,10 @@ import tempfile, os, config
 from PIL import Image
 from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki
+import config
+from wiki.web.pageDAO import PageDaoManager
 from werkzeug.exceptions import NotFound
-from wiki.core import Processor, Page
+
 
 class TestProcessor:
     def test_constructor(self):
@@ -157,13 +159,20 @@ class TestPage:
         assert token_count == expected_result
 
 
+class MockPage:
+    def __init__(self, id, title=None, tags=None):
+        self.id = id
+        self.tags = tags
+        self.title = title
+
+
 class TestWiki:
     def setup_method(self):
         self.tempdir = "/tmp"
         self.wiki = Wiki(self.tempdir)
-        self.url = 'originalURL'
-        self.newurl = 'newURL'
-        self.newurlFolder = 'newURL//new_folder'
+        self.url = "ORIGNAL_URL"
+        self.newurl = "NEW_URL"
+        self.newurlFolder = 'test_move_v2_/new_folder'
 
     def test_constructor(self):
         assert self.wiki.root == self.tempdir
@@ -183,9 +192,8 @@ class TestWiki:
             f.write("# Page 1")
 
         assert self.wiki.exists(url)
-
+    
     def test_get(self):
-        # url = 'test_url_get'
         result = self.wiki.get(self.url)
         assert result == None
         
@@ -223,14 +231,11 @@ class TestWiki:
         page = self.wiki.get_bare(self.url)
         assert page == False
 
-    # def test_get_bare_returns_page_when_page_does_not_exist(self):
-    #     page = self.wiki.get_bare(self.url)
-    #     wiki_path = self.wiki.path(self.url)
-    #     assert page.url == self.url
-    #     assert page.path == wiki_path
+    def test_get_bare_returns_page_when_page_does_not_exist(self):
+        page = self.wiki.get_bare("self.url")
+        assert page.url == "self.url"
 
     def test_move(self):
-        # newurl = 'test_move_new_url'
         path = self.wiki.path(self.url)
         with open(path, 'w') as f:
             f.write('title: # Page 1\n\ntest_move()')
@@ -257,7 +262,6 @@ class TestWiki:
         assert str(error.value) == expected_error_value
 
     def test_move_inside_a_folder_that_does_not_exist(self):
-        # newurl = 'test_move_v2_/new_folder'
         path = self.wiki.path(self.url)
         with open(path, 'w') as f:
             f.write('title: # Page 1\n\ntest_move_inside_a_folder_that_does_not_exist()')
@@ -268,11 +272,13 @@ class TestWiki:
 
     def test_delete_existing_page(self):
         url = "existing-page"
-        wiki_path = self.wiki.path(self.url)
+        wiki_path = self.wiki.path(url)
         with open(wiki_path, "w") as f:
             f.write("# Existing Page")
 
-        deleted = self.wiki.delete(self.url)
+        page = self.wiki.delete(url)
+
+        assert page is True
         assert not self.wiki.exists(wiki_path)
 
     def test_delete_nonexistent_page(self):
@@ -294,3 +300,111 @@ class TestWiki:
             assert im.format == "JPEG"
             assert im.size == (128, 128)
             assert im.mode == "L"
+
+    def test_index_by(self, mocker):
+        dummy_pages = [
+            MockPage("ID1", "Title1", "tag1"),
+            MockPage("ID2", "Title2", "tag1"),
+            MockPage("ID3", "Title3", "tag2"),
+        ]
+
+        # Create a Wiki instance
+        wiki_obj = self.wiki
+
+        # Mock the index method to return the dummy pages
+        mocker.patch.object(wiki_obj, "index", return_value=dummy_pages)
+
+        # Call the index_by method
+        result = wiki_obj.index_by("tags")
+
+        # Check if the result is as expected
+        assert len(result) == 2
+        assert result["tag1"] == [dummy_pages[0], dummy_pages[1]]
+        assert result["tag2"] == [dummy_pages[2]]
+
+    def test_get_by_title(self, mocker):
+        dummy_pages = {
+            "Title1": MockPage("ID1", "Title1", "tag1"),
+            "Title2": MockPage("ID2", "Title2", "tag1"),
+            "Title3": MockPage("ID3", "Title3", "tag2"),
+        }
+
+        # Create a Wiki instance
+        wiki_obj = self.wiki
+
+        # Mock the index method to return the dummy pages
+        mocker.patch.object(wiki_obj, "index", return_value=dummy_pages)
+
+        result = wiki_obj.get_by_title("Title1")
+        assert result == dummy_pages["Title1"]
+
+    def test_index_by_tag(self, mocker):
+        dummy_pages = [
+            MockPage("ID1", "Title1", "tag1"),
+            MockPage("ID2", "Title2", "tag1"),
+            MockPage("ID3", "Title3", "tag2"),
+        ]
+
+        # Create a Wiki instance
+        wiki_obj = self.wiki
+
+        # Mock the index method to return the dummy pages
+        mocker.patch.object(wiki_obj, "index", return_value=dummy_pages)
+
+        # Get the pages by tags
+        result = wiki_obj.index_by_tag("tag1")
+
+        # Verify the results
+        assert len(result) == 2
+        assert dummy_pages[0] in result
+        assert dummy_pages[1] in result
+
+    def test_get_tags(self, mocker):
+        dummy_pages = [
+            MockPage("ID1", "Title1", ""),
+            MockPage("ID2", "Title2", "tag1"),
+            MockPage("ID3", "Title3", "tag2"),
+            MockPage("ID4", "Title4", "tag2"),
+        ]
+
+        # Create a Wiki instance
+        wiki_obj = self.wiki
+
+        # Mock the index method to return the dummy pages
+        mocker.patch.object(wiki_obj, "index", return_value=dummy_pages)
+
+        # Get the pages by tags
+        result = wiki_obj.get_tags()
+
+        # Verify the results
+        assert len(result) == 2
+        assert result["tag1"] == [dummy_pages[1]]
+        assert result["tag2"] == [dummy_pages[2], dummy_pages[3]]
+
+    def test_search(self, mocker):
+        # Create a list of dummy pages to be returned by the index method
+        dummy_pages = [MockPage("ID1"), MockPage("ID2"), MockPage("ID3")]
+
+        # Define a search term and instantiate the Wiki object
+        term = "The Red Truck"
+        wiki_obj = self.wiki
+
+        # Mock the behavior of the index method to return the dummy_pages
+        mocker.patch.object(wiki_obj, "index", return_value=dummy_pages)
+
+        # Define a dictionary with simulated search results
+        search_results = {"ID1": 3, "ID2": 2}
+
+        # Mock the behavior of the PageDaoManager.search method to return the search_results
+        mocker.patch.object(PageDaoManager, "search", return_value=search_results)
+
+        # Mock the behavior of the PageDaoManager.__init__ method to avoid creating a database connection
+        mocker.patch.object(PageDaoManager, "__init__", return_value=None)
+
+        # Call the search method on the Wiki object and store the result
+        matching_pages = wiki_obj.search(term)
+
+        # Test that the correct number of pages were returned and that they match the expected IDs
+        assert len(matching_pages) == 2
+        assert matching_pages[0].id == "ID1"
+        assert matching_pages[1].id == "ID2"
