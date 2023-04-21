@@ -17,7 +17,10 @@ Index of Images
         <tbody>
             {% for image in images %}
                 <tr>
-                    <td>{{ image[0] }}</td>
+                    <td>
+                        <p>{{ image[0] }}</p>
+                        <button onclick="copyText('{{ image[0] }}')">Copy markdown syntax to clipboard</button>
+                    </td>
                     <td><img src="{{url_for('wiki.view_image', filename=image[0])}}" alt=""></td>
                     <td>{{ image[1][0] }}</td>
                 </tr>
@@ -60,3 +63,14 @@ Index of Images
         </li>
     </ul>
 {% endblock sidebar %}
+
+<script type="text/javascript">
+{% block postscripts %}
+function copyText(text) {
+  navigator.clipboard.writeText("![alt text](/img/"+text+")").then(() => {})
+      .catch(() => {
+        alert("something went wrong");
+      });
+}
+{% endblock postscripts %}
+</script>

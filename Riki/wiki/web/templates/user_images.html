@@ -16,7 +16,10 @@ My Images
         <tbody>
             {% for row in images %}
                 <tr>
-                    <td>{{ row[1] }}</td>
+                    <td>
+                        <p>{{ row[1] }}</p>
+                        <button onclick="copyText('{{ row[1] }}')">Copy markdown syntax to clipboard</button>
+                    </td>
                     <td><img src="{{url_for('wiki.view_image', filename=row[1])}}" alt=""></td>
                 </tr>
             {% endfor %}
@@ -58,3 +61,14 @@ My Images
         </li>
     </ul>
 {% endblock sidebar %}
+
+<script type="text/javascript">
+    {% block postscripts %}
+    function copyText(text) {
+      navigator.clipboard.writeText("![alt text](/img/"+text+")").then(() => {})
+          .catch(() => {
+            alert("something went wrong");
+          });
+    }
+    {% endblock postscripts %}
+    </script>
