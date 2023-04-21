@@ -25,6 +25,7 @@ from wiki.web.forms import LoginForm
 from wiki.web.forms import SignupForm
 from wiki.web.forms import SearchForm
 from wiki.web.forms import URLForm
+from wiki.web.forms import EditUserForm
 from wiki.web import current_wiki
 from wiki.web import current_users
 from wiki.web.userDAO import protect
@@ -273,11 +274,34 @@ def user_delete():
     flash('Your account has been deleted.', 'success')
     return redirect(url_for('wiki.index'))
 
+
 @bp.route('/user/profile/', methods=['GET'])
 @login_required
 def user_profile():
     edits = current_users.get_edit_history(current_user.email)
     return render_template('profile.html', user=current_user, edits=edits)
+
+
+@bp.route('/user/edit/', methods=['GET', 'POST'])
+@login_required
+def user_edit():
+
+    form = EditUserForm()
+
+    if request.method == 'POST' and form.validate_on_submit():
+        updated_first_name = form.updated_first_name.data
+        updated_last_name = form.updated_last_name.data
+        # email = form.email.data
+        # password = form.password.data
+
+        current_users.update_user(current_user.email, updated_first_name, updated_last_name)
+
+        flash(f'Edit successful.', 'success')
+
+        current_users.close_db()
+
+        return redirect(request.args.get("next") or url_for("wiki.user_profile"))
+    return render_template("edit.html", form=form, user=current_user)
 
 # Image uploading
 

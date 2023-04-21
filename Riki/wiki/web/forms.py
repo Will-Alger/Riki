@@ -89,3 +89,7 @@ class SignupForm(Form):
         flash(f'val email -> {valemail}')
         if valemail is not None:
             raise ValidationError("This Email ID is already registered. Please login")
+
+class EditUserForm(Form):
+    updated_first_name = TextField('', [InputRequired()])
+    updated_last_name = TextField('', [InputRequired()])

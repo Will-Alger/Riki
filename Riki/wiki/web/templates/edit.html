@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock title %}
+
+{% block content %}
+
+<form class="form form-inline" method="POST">
+	{{ form.hidden_tag() }}
+  {{ form.updated_first_name(placeholder='First Name', value=user.first_name) }}<br><br>
+	{{ form.updated_last_name(placeholder='Last Name', value=user.last_name) }}<br><br>
+
+	<input type="submit" class="btn btn-primary" value="Confirm Edit">
+</form>
+
+{% endblock content %}

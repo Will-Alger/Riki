@@ -65,6 +65,13 @@ class UserDaoManager(object):
     else:
       return UserDao(user[1], user[2], user[3], user[4], user[5])
   
+  def update_user(self, current_user_email, updated_first_name, updated_last_name):
+    self.cur.execute(
+      "UPDATE users SET first_name=?, last_name=? WHERE email = (?)",
+      (updated_first_name, updated_last_name, current_user_email)
+    )
+    self.connection.commit()
+  
   def delete_all_users(self):
     self.cur.execute("DELETE FROM users")
     self.connection.commit()
