@@ -55,7 +55,6 @@
 
 {% block sidebar %}
 <h2>Welcome, {{ user.first_name.capitalize() }}!</h2>
-<br>
 <table>
   <tr>
     <th>First Name</th>
@@ -82,11 +81,6 @@
 </ul>
 <br>
 <h3>Edit History</h3>
-<ul class="nav nav-tabs nav-stacked">
-  {% for edit in edits %}
-    <li><a href="#" class="text-muted" >edited  {{ edit.page_url }} on {{ edit.edit_time.strftime('%m-%d-%Y %H:%M') }}</a></li>
-  {% endfor %}
-</ul>
 <table class="table table-bordered">
   <thead>
     <tr>
