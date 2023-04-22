@@ -104,6 +104,24 @@ def test_create_post(client):
 #     assert b'Create a new page' in rv.data
 
 def test_edit_post(client, testpage):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
+
     # another example of posting a form
     rv = client.post(
         "/edit/testpage",

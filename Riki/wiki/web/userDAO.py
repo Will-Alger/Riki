@@ -48,8 +48,6 @@ class UserDaoManager(object):
     )
     self.connection.commit()
 
-    
-
   def get_users(self):
     self.cur.execute(
       "SELECT * FROM users"

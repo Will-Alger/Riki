@@ -122,29 +122,6 @@ def test_delete_nonexistent_user(user_dao_manager):
     all_users = user_dao_manager.get_users()
     assert len(all_users) == 0
 
-def test_record_history(client, user_dao_manager):
-    url = 'ORIGINS'
-    user = UserDao("John", "Doe", "john@example.com", "password123", datetime.utcnow())
-    user_dao_manager.create_user(user)
-    result = user_dao_manager.get_user(user.email)
-
-    # make an edit to a page
-    client.post(
-        "/edit/ORIGINS",
-        headers={"Content-Type": "multipart/form-data"},
-        data={
-            "title": "ORIGINS FROM EVERYWHERE",
-            "body": "i edited the testpage",
-            "tags": "test, edited",
-        },
-        follow_redirects=True,
-    )
-
-    edits = user_dao_manager.record_history(result.email, url, datetime.now())
-
-    print(f"Teddyoo -> {edits}")
-    assert 1 == 2
-
 def test_record_history_returns_none(user_dao_manager):
     url = 'ORIGINS'
     user = UserDao("John", "Doe", "john@example.com", "password123", datetime.utcnow())
