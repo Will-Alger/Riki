@@ -1,10 +1,12 @@
 import pytest
 from unittest.mock import patch
 import os
+from io import BytesIO
 from Riki import app
 from PIL import Image
 import wiki.web.routes
 import tempfile
+import config
 from wiki.web.db import *
 
 
@@ -277,28 +279,29 @@ def test_upload_image(client):
         'password': 'password',
         'confirm_password': 'password',
     }
-    client.post(
+    rv2 = client.post(
         '/user/create/',
         data=user_data,
         follow_redirects=True
     )
     
-    client.post('/user/login/', data=dict(
+    rv1 = client.post('/user/login/', data=dict(
         email='johnDoe@riki.com',
         password='password'
     ), follow_redirects=True)
 
+    file = tempfile.NamedTemporaryFile(suffix='.jpg')
+    file.filename = 'filename.jpg'
     # send the request
     rv = client.post(
-        "/user/name/upload",
-        headers={"Content-Type": "multipart/form-data"},
-        data={"an_image": tempfile.NamedTemporaryFile(suffix=".jpg")},
+        "/user/upload/",
+        data={"an_image": file},
         follow_redirects=True,
     )
 
     # big win
-    assert b"Image Saved" in rv.data
-
+    assert b'Image Saved' in rv.data
+    assert os.path.exists(os.path.join(config.PIC_BASE, file.filename))
 
 def test_upload_image_error(client):
     # login necessary
@@ -322,14 +325,85 @@ def test_upload_image_error(client):
 
     # send the request
     rv = client.post(
-        "/user/name/upload",
+        "/user/upload",
         headers={"Content-Type": "multipart/form-data"},
-        data={"an_image": tempfile.NamedTemporaryFile(suffix=".bad")},
+        data={"an_image": (tempfile.TemporaryFile(), 'filename.bad')},
         follow_redirects=True,
     )
 
     # big win
-    assert b"Image Not Saved!" in rv.data
+    assert b"File name not allowed!" in rv.data
+
+
+def test_upload_image_no_file_error(client):
+    # login necessary
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
+
+    # send the request
+    rv = client.post(
+        "/user/upload",
+        headers={"Content-Type": "multipart/form-data"},
+        # should not accept none type
+        data={"an_image": None},
+        follow_redirects=True,
+    )
+
+    assert b"There is no image!" in rv.data
+
+def test_upload_image_repeat_filename_error(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
+
+
+    rv1 = client.post(
+        "/user/upload/",
+        headers={'content-type':'multipart/form-data'},
+        data={"an_image": (tempfile.TemporaryFile(), 'filename.jpg')},
+        follow_redirects=True,
+    )
+
+    # return home so we have a valid redirect for the next request
+    client.get('/') 
+    
+    rv2 = client.post(
+        "/user/upload/",
+        headers={'content-type':'multipart/form-data'},
+        data={"an_image": (tempfile.TemporaryFile(), 'filename.jpg')},
+        follow_redirects=True,
+    )
+    assert b'Image Saved!' in rv1.data
+    assert b'File name not allowed!' in rv2.data
 
 
 def test_view_image(client):
@@ -351,16 +425,120 @@ def test_view_image(client):
         password='password'
     ), follow_redirects=True)
 
-    file = Image.new("RGB", [128, 128])
-    file.filename = "filename.jpg"
+    fp = tempfile.NamedTemporaryFile(prefix='filename', suffix='.jpg', delete=False)
+
+    img = Image.new("RGB", (100, 100))
+    img.save(fp, "JPEG")
+    fp.seek(0)
+
+    client.get('/') # return home
 
     client.post(
-        "/user/name/upload",
+        "/user/upload",
         headers={"Content-Type": "multipart/form-data"},
-        data={"an_image": file},
+        data={"an_image": (fp, 'filename.jpg')},
         follow_redirects=True,
     )
-
+    
     response = client.get("/img/filename.jpg/")
 
     assert response.status_code == 200
+
+def test_user_images(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
+
+    client.post(
+        "/user/upload/",
+        headers={"Content-Type": "multipart/form-data"},
+        data={
+            'an_image' : (tempfile.TemporaryFile(), 'filename.jpg')
+        },
+        follow_redirects=True,
+    )
+
+    rv2 = client.get(
+        '/user/images/',
+        follow_redirects=True
+    )
+    assert b'filename.jpg' in rv2.data
+    assert b'johnDoe%40riki.com' in rv2.data
+
+def test_index_images(client):
+    user_data = {
+        'first_name': 'john',
+        'last_name':  'doe',
+        'email': 'johnDoe@riki.com',
+        'password': 'password',
+        'confirm_password': 'password',
+    }
+    client.post(
+        '/user/create/',
+        data=user_data,
+        follow_redirects=True
+    )
+    
+    client.post('/user/login/', data=dict(
+        email='johnDoe@riki.com',
+        password='password'
+    ), follow_redirects=True)
+
+
+    client.post(
+        "/user/upload/",
+        headers={"Content-Type": "multipart/form-data"},
+        data={
+            'an_image' : (tempfile.TemporaryFile(), 'filename1.jpg')
+        },
+        follow_redirects=True,
+    )
+    client.post(
+        "/user/upload/",
+        headers={"Content-Type": "multipart/form-data"},
+        data={
+            'an_image' : (tempfile.TemporaryFile(), 'filename2.jpg')
+        },
+        follow_redirects=True,
+    )
+    client.post(
+        "/user/upload/",
+        headers={"Content-Type": "multipart/form-data"},
+        data={
+            'an_image' : (tempfile.TemporaryFile(), 'filename3.jpg')
+        },
+        follow_redirects=True,
+    )
+    client.post(
+        "/user/upload/",
+        headers={"Content-Type": "multipart/form-data"},
+        data={
+            'an_image' : (tempfile.TemporaryFile(), 'filename4.jpg')
+        },
+        follow_redirects=True,
+    )
+    rv = client.get(
+        '/img/'
+    )
+
+    assert b'filename1.jpg' in rv.data
+    assert b'filename2.jpg' in rv.data
+    assert b'filename3.jpg' in rv.data
+    assert b'filename4.jpg' in rv.data
+    assert b'johnDoe%40riki.com' in rv.data
+    
+

@@ -19,12 +19,6 @@ Wiki Editor
         <div class="pull-left">
           <a class="btn" href="#preview" id="previewbtn">Preview</a>
         </div>
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploader">
-          Upload Image
-        </button>
-        <a href="{{ url_for('wiki.user_images', user_id=current_user.get_id()) }}"><button type="button" class="btn btn-primary">
-          My Images (opens in new tab)
-        </button></a>
         
 				<div class="pull-right">
           <a class="btn" href="{{ url_for('wiki.display', url=page.url) }}">Cancel</a>
@@ -34,21 +28,6 @@ Wiki Editor
 		</form>
 	</div>
 	<div class="tab-pane" id="preview"></div>
-</div>
-
-<div class="modal fade" id="uploader" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h5 class="modal-title" id="modal_title">Upload Image</h5>
-    </div>
-    <div class="modal-body">
-      <form method="POST" enctype="multipart/form-data" action="{{ url_for('wiki.upload_image', user_id=current_user.get_id()) }}">
-        <input type="file" name="an_image">
-        <input type="submit" value="Upload">
-      </form>
-      <button type="button" class="btn-close" data-dismiss="modal">Close</button>
-    </div>
-  </div>
 </div>
 {% endblock content %}
 

@@ -20,7 +20,7 @@ def close_db(e=None):
 
 
 def init_db():
-    print(" * Starting database...")
+    #print(" * Starting database...")
     db = get_db()
     with open("wiki/web/schema.sql") as f:
         db.executescript(f.read())

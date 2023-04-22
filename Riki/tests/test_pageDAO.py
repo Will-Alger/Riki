@@ -21,14 +21,6 @@ def client():
     app.config[
         "WTF_CSRF_ENABLED"
     ] = False  # disables CSRF in WTForms so that we can simulate posts
-    app.config["DATABASE"] = db_path
-    app.config["TESTING"] = True
-    app.config[
-        "PRIVATE"
-    ] = False  # sets PRIVATE to false to disable user auth (see protect dectorator in users.py)
-    app.config[
-        "WTF_CSRF_ENABLED"
-    ] = False  # disables CSRF in WTForms so that we can simulate posts
     with app.test_client() as client:
         with app.app_context():
             init_db()

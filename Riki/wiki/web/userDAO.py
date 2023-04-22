@@ -36,7 +36,7 @@ class UserDao(object):
 
 
 class UserDaoManager(object):
-  def __init__(self, path):
+  def __init__(self):
       self.connection = get_db()
       self.cur = self.connection.cursor()
 
@@ -47,6 +47,8 @@ class UserDaoManager(object):
       (user.first_name, user.last_name, user.email, hashedPassword, user.signup_time)
     )
     self.connection.commit()
+
+    
 
   def get_users(self):
     self.cur.execute(

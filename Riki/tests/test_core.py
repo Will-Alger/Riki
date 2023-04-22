@@ -1,5 +1,5 @@
 import pytest
-import tempfile, os
+import tempfile, os, config
 from PIL import Image
 from collections import OrderedDict
 from wiki.core import Processor, Page, Wiki

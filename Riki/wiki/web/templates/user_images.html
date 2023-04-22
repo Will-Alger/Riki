@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Images
+{% endblock title %}
+
+{% block content %}
+{% if images %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in images %}
+                <tr>
+                    <td>
+                        <p>{{ row[1] }}</p>
+                        <button onclick="copyText('{{ row[1] }}')">Copy markdown syntax to clipboard</button>
+                    </td>
+                    <td><img src="{{url_for('wiki.view_image', filename=row[1])}}" alt=""></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>There are no images yet.</p>
+{% endif %}
+    <div class="modal fade" id="uploader" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_title">Upload Image</h5>
+            </div>
+            <div class="modal-body">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('wiki.upload_image', user_id=current_user.get_id()) }}">
+                    <input type="file" name="an_image">
+                    <input type="submit" value="Upload">
+                </form>
+                <button type="button" class="btn-close" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block sidebar %}
+    <ul class="nav">
+        <li>
+            <a href="{{ url_for('wiki.upload_image') }}">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploader">
+                    Upload Image
+                </button>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('wiki.index_images') }}">
+                <button type="button" class="btn btn-primary">
+                    All Images
+                </button>
+            </a>
+        </li>
+    </ul>
+{% endblock sidebar %}
+
+<script type="text/javascript">
+    {% block postscripts %}
+    function copyText(text) {
+      navigator.clipboard.writeText("![alt text](/img/"+text+")").then(() => {})
+          .catch(() => {
+            alert("something went wrong");
+          });
+    }
+    {% endblock postscripts %}
+    </script>

@@ -3,7 +3,6 @@
     ~~~~~~~~~
 """
 from collections import OrderedDict
-from PIL import Image
 from io import open
 
 import os

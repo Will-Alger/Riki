@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}
+Index of Images
+{% endblock title %}
+
+{% block content %}
+{% if images %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Image</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for image in images %}
+                <tr>
+                    <td>
+                        <p>{{ image[0] }}</p>
+                        <button onclick="copyText('{{ image[0] }}')">Copy markdown syntax to clipboard</button>
+                    </td>
+                    <td><img src="{{url_for('wiki.view_image', filename=image[0])}}" alt=""></td>
+                    <td>{{ image[1][0] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>There are no images yet.</p>
+{% endif %}
+    <div class="modal fade" id="uploader" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_title">Upload Image</h5>
+            </div>
+            <div class="modal-body">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('wiki.upload_image', user_id=current_user.get_id()) }}">
+                    <input type="file" name="an_image">
+                    <input type="submit" value="Upload">
+                </form>
+                <button type="button" class="btn-close" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block sidebar %}
+    <ul class="nav">
+        <li>
+            <a href="{{ url_for('wiki.upload_image', user_id=current_user.get_id()) }}">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploader">
+                    Upload Image
+                </button>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('wiki.user_images', user_id=current_user.get_id()) }}">
+                <button type="button" class="btn btn-primary">
+                    My Images
+                </button>
+            </a>
+        </li>
+    </ul>
+{% endblock sidebar %}
+
+<script type="text/javascript">
+{% block postscripts %}
+function copyText(text) {
+  navigator.clipboard.writeText("![alt text](/img/"+text+")").then(() => {})
+      .catch(() => {
+        alert("something went wrong");
+      });
+}
+{% endblock postscripts %}
+</script>

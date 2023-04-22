@@ -34,7 +34,7 @@ def client():
 def user_dao_manager(client):
     with app.app_context():
         db_path = app.config["DATABASE"]
-        dao_manager = UserDaoManager(db_path)
+        dao_manager = UserDaoManager()
         yield dao_manager
         dao_manager.close_db()
 
