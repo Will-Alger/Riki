@@ -305,6 +305,17 @@ def user_edit():
     return render_template("edit.html", form=form, user=current_user)
 
 # Image uploading
+def allowed_file(filename): 
+        dao = ImageDAO()
+        ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
+        if dao.filename_exists(filename):
+            dao.close_db()
+            return False
+        if not ('.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS):
+            dao.close_db()
+            return False
+        return True
 
 @bp.route('/user/upload/', methods=['POST'])
 @login_required
