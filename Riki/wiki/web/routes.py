@@ -247,12 +247,9 @@ def user_create():
         current_users.create_user(user)
         users = current_users.get_users()
 
-        for item in users:
-            flash(f'{item[0]} {item[1]} {item[2]} {item[3]}')
-
         login_user(user)
         user.set_authenticated(True)
-        flash(f'Sign up successful. You signed up at {user.signup_time}.', 'success')
+        flash(f'Sign up successful.', 'success')
 
         current_users.close_db()
 
@@ -292,8 +289,6 @@ def user_edit():
     if request.method == 'POST' and form.validate_on_submit():
         updated_first_name = form.updated_first_name.data
         updated_last_name = form.updated_last_name.data
-        # email = form.email.data
-        # password = form.password.data
 
         current_users.update_user(current_user.email, updated_first_name, updated_last_name)
 

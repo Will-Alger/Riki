@@ -9,10 +9,17 @@
 	{{ form.first_name(placeholder='First Name') }}<br><br>
 	{{ form.last_name(placeholder='Last Name') }}<br><br>
 	{{ form.password(placeholder='Password') }}<br>
-	{{ form.confirm_password(placeholder='Confirm Password') }}<br><br>
-	{{ form.email(placeholder='Email') }}<br><br>
 
-	{% for error in form.password.errors %} <span>{{ error }}</span> {% endfor %}
+	{{ form.confirm_password(placeholder='Confirm Password') }}<br><br>
+	{% if form.confirm_password.errors %}
+		<div class="alert alert-danger">{{ form.confirm_password.errors[0] }}</div>
+	{% endif %}
+
+	{{ form.email(placeholder='Email') }}<br><br>
+	{% if form.email.errors %}
+    <div class="alert alert-danger">{{ form.email.errors[0] }}</div>
+	{% endif %}
+
 	<input type="submit" class="btn btn-primary" value="Sign up">
 </form>
 

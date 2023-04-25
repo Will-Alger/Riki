@@ -86,7 +86,6 @@ class SignupForm(Form):
 
     def validate_email(form, field):
         valemail =  current_users.get_user(field.data)
-        flash(f'val email -> {valemail}')
         if valemail is not None:
             raise ValidationError("This Email ID is already registered. Please login")
 
