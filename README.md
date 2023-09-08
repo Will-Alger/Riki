@@ -57,4 +57,3 @@ docker-compose run riki <command>
 ```
 
 **Note:** All predefined commands are in the `Riki/entrypoint.sh` file. Examine that file for further information.
-```
